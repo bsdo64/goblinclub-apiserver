@@ -12,9 +12,12 @@
   "devDependencies": {
     "eslint": "^1.10.3",
     "jest": "^0.1.40",
-    "jest-cli": "^0.8.2"
+    "jest-cli": "^0.8.2",
+    "superagent": "^1.6.1"
   },
   "dependencies": {
+    "body-parser": "^1.14.2",
+    "cors": "^2.7.1",
     "express": "^4.13.3",
     "lodash": "^3.10.1",
     "moment": "^2.10.6",
