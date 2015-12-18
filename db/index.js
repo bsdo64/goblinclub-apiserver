@@ -1,8 +1,8 @@
 /**
  * Created by dobyeongsu on 2015. 10. 28..
  */
-var fs = require("fs");
-var path = require("path");
+var fs = require('fs');
+var path = require('path');
 var config = require('./config').DB;
 var Sequelize = require('sequelize');
 require('sequelize-hierarchy')(Sequelize);
@@ -22,7 +22,7 @@ var DB = {};
 fs
   .readdirSync((__dirname + '/models'))
   .filter(function (file) {
-    return (file.indexOf(".") !== 0) && (file !== "index.js");
+    return (file.indexOf('.') !== 0) && (file !== 'index.js');
   })
   .forEach(function (file) {
     var model = sequelize.import(path.join(__dirname, '/models', file));
@@ -30,7 +30,7 @@ fs
   });
 
 Object.keys(DB).forEach(function (modelName) {
-  if ("associate" in DB[modelName]) {
+  if ('associate' in DB[modelName]) {
     DB[modelName].associate(DB);
   }
 });
