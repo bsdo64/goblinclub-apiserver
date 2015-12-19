@@ -1,6 +1,7 @@
 /**
  * Created by dobyeongsu on 2015. 11. 11..
  */
+
 module.exports = function (sequelize, DataTypes) {
   var Post = sequelize.define('post', {
     uid: {

@@ -4,17 +4,15 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "jest",
-    "hello": "node jasmine.js",
-    "start": "node server.js"
-  },
-  "jest": {
-    "testRunner": "<rootDir>/node_modules/jest-cli/src/testRunners/jasmine/jasmine2.js"
+    "test": "node jasmine.js",
+    "start": "node server.js",
+    "lint": "eslint ./ -c .eslintrc"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "eslint": "^1.10.3",
+    "eslint-plugin-jasmine": "^1.6.0",
     "jasmine": "^2.4.1",
     "jest": "^0.1.40",
     "jest-cli": "^0.8.2",

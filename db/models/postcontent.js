@@ -32,7 +32,7 @@ module.exports = function (sequelize, DataTypes) {
     classMethods: {
       associate: function (models) {
         PostContent.belongsTo(models.user, {
-          onDelete: "CASCADE",
+          onDelete: 'CASCADE',
           foreignKey: 'uploader'
         });
 
