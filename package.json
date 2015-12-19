@@ -4,21 +4,28 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "hello": "node jasmine.js",
     "start": "node server.js"
+  },
+  "jest": {
+    "testRunner": "<rootDir>/node_modules/jest-cli/src/testRunners/jasmine/jasmine2.js"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "eslint": "^1.10.3",
+    "jasmine": "^2.4.1",
     "jest": "^0.1.40",
     "jest-cli": "^0.8.2",
-    "superagent": "^1.6.1"
+    "supertest": "^1.1.0"
   },
   "dependencies": {
+    "bluebird": "^3.1.1",
     "body-parser": "^1.14.2",
     "cors": "^2.7.1",
     "express": "^4.13.3",
+    "jsonwebtoken": "^5.4.1",
     "lodash": "^3.10.1",
     "moment": "^2.10.6",
     "sequelize": "^3.15.0"

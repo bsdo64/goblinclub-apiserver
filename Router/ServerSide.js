@@ -27,11 +27,7 @@ router.use(function (req, res, next) {
 
     G.Post.findAll(conf[0])
     .then(function (posts) {
-      console.log(JSON.parse(JSON.stringify(posts))[0]);
 
-      console.log(req.session);
-      console.log(req.cookies);
-      console.log(req.headers);
       return G.Club.findAll(conf[1]);
     });
   });
@@ -68,7 +64,7 @@ router.get('/', function (req, res) {
   }).then(function (defaultClubs) {
     result.ClubStore.defaultClubList = defaultClubs;
 
-    if (user.email) {
+    if (user && user.email) {
       User
         .find({where: {email: user.email}})
         .then(function (userFound) {
@@ -127,7 +123,7 @@ router.get('/club/:clubName', function (req, res) {
 
     })
     .then(function () {
-      if (user.email) {
+      if (user && user.email) {
         var findUser;
         User
           .find({where: {email: user.email}})
@@ -169,7 +165,7 @@ router.get('/club/:clubName/submit', function (req, res) {
     .then(function (defaultClubs) {
       result.ClubStore.defaultClubList = defaultClubs;
 
-      if (user.email) {
+      if (user && user.email) {
         User
           .find({where: {email: user.email}})
           .then(function (user) {
@@ -209,7 +205,7 @@ router.get('/submit', function (req, res) {
     .then(function (defaultClubs) {
       result.ClubStore.defaultClubList = defaultClubs;
 
-      if (user.email) {
+      if (user && user.email) {
         User
           .find({where: {email: user.email}})
           .then(function (user) {
@@ -296,7 +292,7 @@ router.get('/club/:clubName/:postName', function (req, res) {
     return Club.findAll({where: {type: 'default'}});
   }).then(function (defaultClubs) {
     result.ClubStore.defaultClubList = defaultClubs;
-    if (user.email) {
+    if (user && user.email) {
       User.find({
         where: {email: user.email}
       }).then(function (user) {

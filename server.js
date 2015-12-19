@@ -30,3 +30,5 @@ app.listen(3001, function () {
     console.log('Goblin Api listening');
   });
 });
+
+module.exports = app;

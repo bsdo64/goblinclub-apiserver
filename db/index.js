@@ -21,9 +21,6 @@ var DB = {};
 
 fs
   .readdirSync((__dirname + '/models'))
-  .filter(function (file) {
-    return (file.indexOf('.') !== 0) && (file !== 'index.js');
-  })
   .forEach(function (file) {
     var model = sequelize.import(path.join(__dirname, '/models', file));
     DB[model.name] = model;
