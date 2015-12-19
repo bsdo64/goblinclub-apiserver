@@ -25,6 +25,29 @@ describe('Composer Test - ', function(){
   });
 
   describe('User - ', function() {
+    beforeAll(function(done) {
+      Goblin('Composer', function(G) {
+        var user = {
+          email: 'test@test.com',
+          nick: 'test1',
+          password: 'test1234'
+        };
+
+        G.User
+          .findOne(user)
+          .then(function (user) {
+            if(user) {
+              return G.User.remove(user)
+            } else {
+              return true
+            }
+          })
+          .then(function() {
+            done();
+          })
+      });
+    });
+
     it('public method', function(done) {
       Goblin('Composer', function(G) {
         expect(G.User.signin).toBeDefined();
@@ -166,7 +189,39 @@ describe('Composer Test - ', function(){
         G.User
           .setToken(user)
           .catch(function(error) {
-            console.log(error);
+            expect(error.name).toEqual('Error');
+            done();
+          })
+      })
+    });
+
+    it('setToken : undefined nick', function(done) {
+      Goblin('Composer', function(G) {
+        var user = {
+          email: 'test@test.co.kr',
+          password: 'test1234'
+        };
+
+        G.User
+          .setToken(user)
+          .catch(function(error) {
+            expect(error.name).toEqual('Error');
+            done();
+          })
+      })
+    });
+
+    it('setToken : undefined password', function(done) {
+      Goblin('Composer', function(G) {
+        var user = {
+          email: 'test@test.co.kr',
+          nick: 'test1'
+        };
+
+        G.User
+          .setToken(user)
+          .catch(function(error) {
+            expect(error.name).toEqual('Error');
             done();
           })
       })
@@ -189,6 +244,28 @@ describe('Composer Test - ', function(){
             expect(loginUser.email).toEqual(user.email);
             expect(loginUser.nick).toEqual(user.nick);
             expect(loginUser.password).toEqual(user.password);
+            done();
+          })
+      })
+    });
+
+    it('isLogin : invalidate token', function(done) {
+      Goblin('Composer', function(G) {
+        var token = 'Invalidate token';
+        G.User.isLogin(token)
+          .catch(function (error) {
+            expect(error.name).toEqual('JsonWebTokenError');
+            done();
+          })
+      })
+    });
+
+    it('isLogin : invalidate token', function(done) {
+      Goblin('Composer', function(G) {
+        var token = 'Invalidate token';
+        G.User.isLogin(token)
+          .catch(function (error) {
+            expect(error.name).toEqual('JsonWebTokenError');
             done();
           })
       })
