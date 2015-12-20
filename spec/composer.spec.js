@@ -1,22 +1,13 @@
 /**
  * Created by dobyeongsu on 2015. 12. 19..
  */
-var Goblin = require('../lib/index');
-var jsonwebtoken = require('jsonwebtoken');
 
-function finish_test (done) {
-  return function (err) {
-    if (err) {
-      done.fail(err)
-    } else {
-      done()
-    }
-  }
-}
+describe('Composer Test - ', function () {
+  var Goblin = require('../lib/index');
+  var jsonwebtoken = require('jsonwebtoken');
 
-describe('Composer Test - ', function(){
-  it('Composer Module', function(done) {
-    Goblin('Composer', function(G) {
+  it('Composer Module', function (done) {
+    Goblin('Composer', function (G) {
       expect(G.User).toBeDefined();
       expect(G.Post).toBeDefined();
       expect(G.Club).toBeDefined();
@@ -24,9 +15,32 @@ describe('Composer Test - ', function(){
     });
   });
 
-  describe('User - ', function() {
-    it('public method', function(done) {
-      Goblin('Composer', function(G) {
+  describe('User - ', function () {
+    beforeAll(function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'test@test.com',
+          nick: 'test1',
+          password: 'test1234'
+        };
+
+        G.User
+          .findOne(user)
+          .then(function (findUser) {
+            if (findUser) {
+              return G.User.remove(findUser);
+            } else {
+              return true;
+            }
+          })
+          .then(function () {
+            done();
+          });
+      });
+    });
+
+    it('public method', function (done) {
+      Goblin('Composer', function (G) {
         expect(G.User.signin).toBeDefined();
         expect(G.User.setToken).toBeDefined();
         expect(G.User.isLogin).toBeDefined();
@@ -36,15 +50,15 @@ describe('Composer Test - ', function(){
       });
     });
 
-    it('private method', function(done) {
-      Goblin('Composer', function(G) {
+    it('private method', function (done) {
+      Goblin('Composer', function (G) {
         expect(G.User._privateMethod).not.toBeDefined();
         done();
       });
     });
 
-    it('signin', function(done) {
-      Goblin('Composer', function(G) {
+    it('signin', function (done) {
+      Goblin('Composer', function (G) {
         var user = {
           email: 'test@test.com',
           nick: 'test1',
@@ -63,8 +77,8 @@ describe('Composer Test - ', function(){
       });
     });
 
-    it('signin : already signin (email)', function(done) {
-      Goblin('Composer', function(G) {
+    it('signin : already signin (email)', function (done) {
+      Goblin('Composer', function (G) {
         var user = {
           email: 'test@test.com',
           nick: 'test12',
@@ -82,8 +96,8 @@ describe('Composer Test - ', function(){
       });
     });
 
-    it('signin : already signin (nick)', function(done) {
-      Goblin('Composer', function(G) {
+    it('signin : already signin (nick)', function (done) {
+      Goblin('Composer', function (G) {
         var user = {
           email: 'test1@test.com',
           nick: 'test1',
@@ -101,8 +115,8 @@ describe('Composer Test - ', function(){
       });
     });
 
-    it('signin : already signin (email, nick)', function(done) {
-      Goblin('Composer', function(G) {
+    it('signin : already signin (email, nick)', function (done) {
+      Goblin('Composer', function (G) {
         var user = {
           email: 'test@test.com',
           nick: 'test1',
@@ -118,8 +132,8 @@ describe('Composer Test - ', function(){
       });
     });
 
-    it('signin : already signin (email, nick, password)', function(done) {
-      Goblin('Composer', function(G) {
+    it('signin : already signin (email, nick, password)', function (done) {
+      Goblin('Composer', function (G) {
         var user = {
           email: 'test@test.com',
           nick: 'test1',
@@ -137,8 +151,8 @@ describe('Composer Test - ', function(){
       });
     });
 
-    it('setToken', function(done) {
-      Goblin('Composer', function(G) {
+    it('setToken', function (done) {
+      Goblin('Composer', function (G) {
         var user = {
           email: 'test@test.com',
           nick: 'test1',
@@ -147,17 +161,17 @@ describe('Composer Test - ', function(){
 
         G.User
           .setToken(user)
-          .then(function(token) {
+          .then(function (token) {
             var decoded = jsonwebtoken.verify(token, 'secret');
             expect(decoded.email).toEqual(user.email);
             expect(decoded.nick).toEqual(user.nick);
             done();
-          })
-      })
+          });
+      });
     });
 
-    it('setToken : undefined email', function(done) {
-      Goblin('Composer', function(G) {
+    it('setToken : undefined email', function (done) {
+      Goblin('Composer', function (G) {
         var user = {
           nick: 'test1',
           password: 'test1234'
@@ -165,15 +179,47 @@ describe('Composer Test - ', function(){
 
         G.User
           .setToken(user)
-          .catch(function(error) {
-            console.log(error);
+          .catch(function (error) {
+            expect(error.name).toEqual('Error');
             done();
-          })
-      })
+          });
+      });
     });
 
-    it('isLogin', function(done) {
-      Goblin('Composer', function(G) {
+    it('setToken : undefined nick', function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'test@test.co.kr',
+          password: 'test1234'
+        };
+
+        G.User
+          .setToken(user)
+          .catch(function (error) {
+            expect(error.name).toEqual('Error');
+            done();
+          });
+      });
+    });
+
+    it('setToken : undefined password', function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'test@test.co.kr',
+          nick: 'test1'
+        };
+
+        G.User
+          .setToken(user)
+          .catch(function (error) {
+            expect(error.name).toEqual('Error');
+            done();
+          });
+      });
+    });
+
+    it('isLogin', function (done) {
+      Goblin('Composer', function (G) {
         var user = {
           email: 'test@test.com',
           nick: 'test1',
@@ -181,21 +227,43 @@ describe('Composer Test - ', function(){
         };
         G.User
           .setToken(user)
-          .then(function(token) {
-            return G.User.isLogin(token)
+          .then(function (token) {
+            return G.User.isLogin(token);
           })
           .then(function (isLogin) {
-            var loginUser = isLogin.get({plain:true});
+            var loginUser = isLogin.get({plain: true});
             expect(loginUser.email).toEqual(user.email);
             expect(loginUser.nick).toEqual(user.nick);
             expect(loginUser.password).toEqual(user.password);
             done();
-          })
-      })
+          });
+      });
     });
 
-    it('login', function(done) {
-      Goblin('Composer', function(G) {
+    it('isLogin : invalidate token', function (done) {
+      Goblin('Composer', function (G) {
+        var token = 'Invalidate token';
+        G.User.isLogin(token)
+          .catch(function (error) {
+            expect(error.name).toEqual('JsonWebTokenError');
+            done();
+          });
+      });
+    });
+
+    it('isLogin : invalidate token', function (done) {
+      Goblin('Composer', function (G) {
+        var token = 'Invalidate token';
+        G.User.isLogin(token)
+          .catch(function (error) {
+            expect(error.name).toEqual('JsonWebTokenError');
+            done();
+          });
+      });
+    });
+
+    it('login', function (done) {
+      Goblin('Composer', function (G) {
         var user = {
           email: 'test@test.com',
           password: 'test1234'
@@ -203,15 +271,15 @@ describe('Composer Test - ', function(){
         G.User
           .login(user)
           .then(function (loginUser) {
-            var userJS = loginUser.get({plain:true});
+            var userJS = loginUser.get({plain: true});
             expect(userJS.email).toEqual(user.email);
             done();
-          })
-      })
+          });
+      });
     });
 
-    it('remove', function(done) {
-      Goblin('Composer', function(G) {
+    it('remove', function (done) {
+      Goblin('Composer', function (G) {
         var user = {
           email: 'test@test.com',
           nick: 'test1',
@@ -225,5 +293,62 @@ describe('Composer Test - ', function(){
           });
       });
     });
-  })
+  });
+
+  describe('Post - ', function () {
+    beforeAll(function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'test@test.com',
+          nick: 'test1',
+          password: 'test1234'
+        };
+
+        G.User
+          .findOne(user)
+          .then(function (findUser) {
+            if (!findUser) {
+              return G.User.signin(findUser);
+            } else {
+              return true;
+            }
+          })
+          .then(function () {
+            done();
+          });
+      });
+    });
+
+    afterAll(function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'test@test.com',
+          nick: 'test1',
+          password: 'test1234'
+        };
+
+        G.User
+          .findOne(user)
+          .then(function (findUser) {
+            if (findUser) {
+              return G.User.remove(findUser);
+            } else {
+              return true;
+            }
+          })
+          .then(function () {
+            done();
+          });
+      });
+    });
+
+    it('find one post', function (done) {
+      Goblin('Composer', function (G) {
+        G.Post.createOne(function (posts) {
+          console.log(posts);
+          done();
+        });
+      });
+    });
+  });
 });

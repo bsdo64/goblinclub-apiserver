@@ -120,7 +120,6 @@ router.get('/club/:clubName', function (req, res) {
         return post;
       });
       result.PostStore.postList = posts;
-
     })
     .then(function () {
       if (user && user.email) {

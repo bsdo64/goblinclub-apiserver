@@ -27,6 +27,7 @@ module.exports = function (sequelize, DataTypes) {
       associate: function (models) {
         Club.belongsTo(models.user, {
           foreignKey: {
+            onDelete: 'CASCADE',
             name: 'creator',
             allowNull: false
           }

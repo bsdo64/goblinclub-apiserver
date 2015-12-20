@@ -1,6 +1,7 @@
 /**
  * Created by dobyeongsu on 2015. 10. 28..
  */
+
 module.exports = function (sequelize, DataTypes) {
   var UserRead = sequelize.define('user_read', {
     id: {
