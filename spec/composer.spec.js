@@ -294,4 +294,61 @@ describe('Composer Test - ', function () {
       });
     });
   });
+
+  describe('Post - ', function () {
+    beforeAll(function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'test@test.com',
+          nick: 'test1',
+          password: 'test1234'
+        };
+
+        G.User
+          .findOne(user)
+          .then(function (findUser) {
+            if (!findUser) {
+              return G.User.signin(findUser);
+            } else {
+              return true;
+            }
+          })
+          .then(function () {
+            done();
+          });
+      });
+    });
+
+    afterAll(function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'test@test.com',
+          nick: 'test1',
+          password: 'test1234'
+        };
+
+        G.User
+          .findOne(user)
+          .then(function (findUser) {
+            if (findUser) {
+              return G.User.remove(findUser);
+            } else {
+              return true;
+            }
+          })
+          .then(function () {
+            done();
+          });
+      });
+    });
+
+    it('find one post', function (done) {
+      Goblin('Composer', function (G) {
+        G.Post.createOne(function (posts) {
+          console.log(posts);
+          done();
+        });
+      });
+    });
+  });
 });
