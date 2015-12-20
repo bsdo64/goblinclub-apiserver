@@ -68,6 +68,7 @@ router.get('/', function (req, res) {
       User
         .find({where: {email: user.email}})
         .then(function (userFound) {
+          console.log(userFound);
           findUser = userFound;
           return Club.findAll({where: {creator: userFound.id}});
         })
