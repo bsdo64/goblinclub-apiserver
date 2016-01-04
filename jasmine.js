@@ -3,14 +3,14 @@
  */
 var Jasmine = require('jasmine');
 var reporters = require('jasmine-reporters');
-var junitReporter = new reporters.TerminalReporter({
+var terminalReporter = new reporters.TerminalReporter({
   verbosity: 5,
   color: true,
   showStack: true
 });
 var jasmine = new Jasmine();
 
-jasmine.addReporter(junitReporter);
+jasmine.addReporter(terminalReporter);
 jasmine.loadConfigFile('spec/support/jasmine.json');
 jasmine.configureDefaultReporter({
   showColors: true

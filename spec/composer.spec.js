@@ -8,7 +8,7 @@ describe('Composer Test - ', function () {
   var model = require('../db');
 
   beforeAll(function (done) {
-    var tUser, tClub1, tClub2;
+    var tUser, tClub1, tClub2, tPost1, tPost2;
     (function loop(value) {
       if (value !== 10) {
         model
@@ -33,6 +33,7 @@ describe('Composer Test - ', function () {
           })
           .then(function (club) {
             tClub1 = club;
+            tClub1.setCreatedBy(tUser);
 
             return model
               .club
@@ -46,8 +47,9 @@ describe('Composer Test - ', function () {
           })
           .then(function (club) {
             tClub2 = club;
+            tClub2.setSubscribedBy(tUser);
 
-            return tClub2.setUsers(tUser);
+            return tClub2.setCreatedBy(tUser);
           })
           .then(function () {
             return model
@@ -60,7 +62,8 @@ describe('Composer Test - ', function () {
               });
           })
           .then(function (post) {
-            return post.setClubs(tClub1);
+            tPost1 = post;
+            return post.setBelongingClubs(tClub1);
           })
           .then(function () {
             return model
@@ -73,7 +76,21 @@ describe('Composer Test - ', function () {
               });
           })
           .then(function (post) {
-            return post.setClubs(tClub2);
+            tPost2 = post;
+            return post.setBelongingClubs(tClub2);
+          })
+          .then(function () {
+            return model.vote.findOrCreate({
+              where: {
+                votable: 'post',
+                votableId: tPost1.get({plain: true}).uid,
+                liker: tUser.get({plain: true}).id,
+                kind: 1
+              }
+            });
+          })
+          .spread(function (vote, created) {
+            return tPost1.increment({voteCount: 1, likeCount: 1});
           })
           .then(function () {
             return value + 1;
@@ -125,21 +142,27 @@ describe('Composer Test - ', function () {
     });
 
     it('signin', function (done) {
-      Goblin('Composer', function (G) {
+      Goblin('Composer', 'Validator', function (G) {
         var user = {
           email: 'tests@test.com',
-          nick: 'test',
+          nick: '안녕하세요병수',
           password: 'test1234'
         };
 
-        G.User
-          .signin(user)
+        G.validate
+          .signinUser(user)
+          .then(function () {
+            return G.User.signin(user);
+          })
           .then(function (newUser) {
             var userJS = newUser.get({plain: true});
             expect(userJS.email).toEqual(user.email);
             expect(userJS.nick).toEqual(user.nick);
             expect(userJS.password).toEqual(user.password);
             done();
+          })
+          .catch(function (err) {
+            done.fail(err);
           });
       });
     });
@@ -247,7 +270,7 @@ describe('Composer Test - ', function () {
         G.User
           .setToken(user)
           .catch(function (error) {
-            expect(error.name).toEqual('Error');
+            expect(error.name).toEqual('ComposerError');
             done();
           });
       });
@@ -263,7 +286,7 @@ describe('Composer Test - ', function () {
         G.User
           .setToken(user)
           .catch(function (error) {
-            expect(error.name).toEqual('Error');
+            expect(error.name).toEqual('ComposerError');
             done();
           });
       });
@@ -279,7 +302,7 @@ describe('Composer Test - ', function () {
         G.User
           .setToken(user)
           .catch(function (error) {
-            expect(error.name).toEqual('Error');
+            expect(error.name).toEqual('ComposerError');
             done();
           });
       });
@@ -326,9 +349,8 @@ describe('Composer Test - ', function () {
         };
         G.User
           .login(user)
-          .then(function (loginUser) {
-            var userJS = loginUser.get({plain: true});
-            expect(userJS.email).toEqual(user.email);
+          .then(function (token) {
+            expect(token).toEqual(jasmine.any(String));
             done();
           });
       });
@@ -352,14 +374,217 @@ describe('Composer Test - ', function () {
   });
 
   describe('Club - ', function () {
+    it('find default club', function (done) {
+      Goblin('Composer', function (G) {
+        G.Club
+          .findDefaults()
+          .then(function (defaults) {
+            expect(defaults.length).toEqual(9);
+            done();
+          });
+      });
+    });
+
     it('create default club', function (done) {
       Goblin('Composer', function (G) {
-        done();
+        var club = {
+          name: 'TESTX',
+          url: 'TESTX',
+          description: 'TESTX',
+          type: 'default',
+          creator: 2
+        };
+        G.Club
+          .createDefault(club)
+          .then(function (newClub) {
+            expect(newClub.get({plain: true}).name).toEqual('TESTX');
+
+            return G.Club.findDefaults();
+          })
+          .then(function (defaults) {
+            expect(defaults.length).toEqual(10);
+            done();
+          });
+      });
+    });
+
+    it('find user created clubs', function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'tests1@test.com'
+        };
+        G.Club
+          .findUserCreated(user)
+          .then(function (clubs) {
+            expect(clubs.length).toEqual(2);
+            done();
+          });
+      });
+    });
+
+    it('find user subscribed clubs', function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'tests1@test.com'
+        };
+        G.Club
+          .findUserSubs(user)
+          .then(function (clubs) {
+            expect(clubs.length).toEqual(1);
+            done();
+          });
       });
     });
   });
 
   describe('Post - ', function () {
+    it('find best posts', function (done) {
+      Goblin('Composer', function (G) {
+        G.Post
+          .findBest()
+          .then(function (posts) {
+            var sample = posts[0].get({plain: true});
+            expect(posts.length).toEqual(18);
+            expect(sample.user).toEqual(jasmine.any(Object));
+            expect(sample.user.id).toEqual(jasmine.any(Number));
+            expect(sample.user.nick).toEqual(jasmine.any(String));
+            expect(sample.user.email).not.toBeDefined();
+            done();
+          });
+      });
+    });
+
+    it('find posts by clubs', function (done) {
+      Goblin('Composer', function (G) {
+        var club = {
+          url: 'game1'
+        };
+        G.Post
+          .findPostByClub(club)
+          .then(function (posts) {
+            var sample = posts[0].get({plain: true});
+            expect(posts.length).toEqual(1);
+            expect(sample.user).toEqual(jasmine.any(Object));
+            expect(sample.user.id).toEqual(jasmine.any(Number));
+            expect(sample.user.nick).toEqual(jasmine.any(String));
+            expect(sample.user.email).not.toBeDefined();
+            done();
+          });
+      });
+    });
+
+    it('find posts user created', function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'tests1@test.com'
+        };
+        G.Post
+          .findPostUserCreated(user)
+          .then(function (posts) {
+            var sample = posts[0].get({plain: true});
+            expect(posts.length).toEqual(2);
+            expect(sample.user).toEqual(jasmine.any(Object));
+            expect(sample.user.id).toEqual(jasmine.any(Number));
+            expect(sample.user.nick).toEqual(jasmine.any(String));
+            expect(sample.user.email).not.toBeDefined();
+            done();
+          });
+      });
+    });
+  });
+
+
+  describe('Vote - ', function () {
+    it('Post like', function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'tests2@test.com'
+        };
+        var uid = {
+          uid: '1q2'
+        };
+        G.Post
+          .like(uid, user)
+          .then(function (post) {
+            expect(post.get('voteCount')).toEqual(2);
+            expect(post.get('likeCount')).toEqual(2);
+            done();
+          })
+          .catch(function (e) {
+            console.log(e);
+            done();
+          });
+      });
+    });
+
+    it('Post dislike', function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'tests2@test.com'
+        };
+        var uid = {
+          uid: '1q3'
+        };
+        G.Post
+          .dislike(uid, user)
+          .then(function (post) {
+            expect(post.get('voteCount')).toEqual(0);
+            expect(post.get('likeCount')).toEqual(0);
+            done();
+          })
+          .catch(function (e) {
+            console.log(e);
+            done();
+          });
+      });
+    });
+
+    it('Post unlike', function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'tests2@test.com'
+        };
+        var uid = {
+          uid: '1q2'
+        };
+        G.Post
+          .unlike(uid, user)
+          .then(function (post) {
+            expect(post.get({plain: true}).voteCount).toEqual(1);
+            expect(post.get({plain: true}).likeCount).toEqual(1);
+            done();
+          })
+          .catch(function (e) {
+            console.log(e);
+            done();
+          });
+      });
+    });
+
+    it('Post undislike', function (done) {
+      Goblin('Composer', function (G) {
+        var user = {
+          email: 'tests2@test.com'
+        };
+        var uid = {
+          uid: '1q3'
+        };
+        G.Post
+          .undislike(uid, user)
+          .then(function (post) {
+            expect(post.get('voteCount')).toEqual(1);
+            expect(post.get('likeCount')).toEqual(1);
+            done();
+          })
+          .catch(function (e) {
+            console.log(e);
+            done();
+          });
+      });
+    });
+  });
+
+  describe('Comment - ', function () {
 
     it('find one post', function (done) {
       done();

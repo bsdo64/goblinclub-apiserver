@@ -15,6 +15,8 @@ var User = Model.user;
 var Club = Model.club;
 var Comment = Model.comment;
 
+var Goblin = require('../lib/index');
+
 moment.locale('ko');
 
 router.use(function timeLog(req, res, next) {
@@ -28,51 +30,55 @@ router.get('/best', function (req, res) {
     ClubStore: {}
   };
 
-  Post.findAll({
-    order: [
-      ['createdAt', 'DESC']
-    ],
-    include: [
-      {model: User, required: true, attributes: ['nick', 'id']},
-      {model: Club, required: true}
-    ]
-  }).then(function (bestPosts) {
-    _.map(bestPosts, function (bestPost) {
-      bestPost.setDataValue('createdAt', moment(bestPost.createdAt).fromNow());
-      bestPost.setDataValue('updatedAt', moment(bestPost.updatedAt).fromNow());
-      return bestPost;
-    });
-    result.PostStore.bestList = bestPosts;
-
-    return Club.findAll({where: {type: 'default'}});
-  }).then(function (defaultClubs) {
-    result.ClubStore.defaultClubList = defaultClubs;
-    res.send(result);
+  Goblin('Composer', function (G) {
+    G.Post.findBest()
+      .then(function (posts) {
+        result.PostStore.bestList = posts;
+        return G.Club.findDefaults();
+      })
+      .then(function (clubs) {
+        result.ClubStore.defaultClubList = clubs;
+        res.json(result);
+      })
+      .catch(function (err) {
+        res.status(404).json(err);
+      });
   });
 });
 
 router.post('/login', function (req, res) {
   var user = req.body.user;
+  Goblin('Composer', 'Validator', function (G) {
+    G.validate.loginUser(user)
+      .then(function (validateUser) {
+        return G.User.login(validateUser);
+      })
+      .then(function (token) {
+        res.cookie('token', token, {
+          expires: new Date(Date.now() + (24 * 60 * 60 * 1000)),
+          httpOnly: true
+        });
 
-  try {
-    var token = jsonWebToken.sign(user, 'secret', {expiresIn: '7d'});
-
-    res.cookie('token', token, {
-      expires: new Date(Date.now() + (24 * 60 * 60 * 1000)),
-      httpOnly: true
-    });
-
-    res.json({
-      token: token,
-      user: user,
-      message: 'Loggined!'
-    });
-  } catch (err) {
-    res.json({
-      message: 'can\'t make token',
-      error: err
-    });
-  }
+        res.json({
+          token: token,
+          user: user,
+          message: 'Loggined!'
+        });
+      })
+      .catch(function (err) {
+        if (err.name === 'ComposerError') {
+          res.status(404).json(err);
+        } else if (err.name === 'ValidationError') {
+          res.status(404).json(err);
+        } else {
+          res.status(404).json({
+            type: 'Fatal Error',
+            message: '심각한 오류',
+            error: err
+          });
+        }
+      });
+  });
 });
 
 router.post('/signin', function (req, res) {
@@ -156,7 +162,7 @@ router.post('/submit', function (req, res) {
       where: {uid: postId},
       include: [
         {model: User, required: true, attributes: ['nick', 'id']},
-        {model: Club, required: true}
+        {model: Club, required: true, as: 'belongingClubs'}
       ]
     });
   }).then(function (post) {
@@ -165,59 +171,124 @@ router.post('/submit', function (req, res) {
   });
 });
 
-router.get('/club/:clubName/:article', function (req, res) {
-  var article = req.params.article;
+router.get('/club/:clubName', function (req, res) {
   var clubName = req.params.clubName;
+  var token = req.headers.token;
 
   var result = {
-    PostStore: {},
-    ClubStore: {}
+    PostStore: {
+      readingPost: {},
+      postList: [],
+      commentList: []
+    },
+    ClubStore: {
+      defaultClubList: [],
+      userHas: {
+        createdClubList: [],
+        subscribedClubList: []
+      }
+    }
   };
 
-  Post.findOne({
-    where: {uid: article},
-    include: [
-      {model: User, required: true, attributes: ['nick', 'id']},
-      {model: Club, required: true}
-    ]
-  }).then(function (post) {
-    post.setDataValue('createdAt', moment(post.createdAt).fromNow());
-    post.setDataValue('updatedAt', moment(post.updatedAt).fromNow());
-    result.PostStore.readingPost = post;
+  Goblin('Composer', 'Validator', function (G) {
+    G.Post.findPostByClub(clubName)
+      .then(function (posts) {
+        result.PostStore.postList = posts;
 
-    return Comment.findAll({
-      limit: 5,
-      include: [{
-        model: Comment,
-        include: [{model: User}],
-        as: 'descendents',
-        hierarchy: true
-      }, {
-        model: User
-      }],
-      where: {hierarchyLevel: 1, postId: post.uid}
-    });
-  }).then(function (comments) {
-    result.PostStore.commentList = comments;
+        return G.Club.findDefaults();
+      })
+      .then(function (clubs) {
+        result.ClubStore.defaultClubList = clubs;
 
-    return Club.find({where: {url: clubName}}).then(function (club) {
-      if (!club) {
-        return [];
-      }
-      return club.getPosts({
-        order: [['createdAt', 'DESC']],
-        include: [User, Club]
+        return G.User.isLogin(token);
+      })
+      .then(function (isLogin) {
+        if (isLogin) {
+          var findUser = isLogin;
+          G.Club.findUserCreated(findUser)
+            .then(function (created) {
+              result.ClubStore.userHas.createdClubList = created;
+
+              return G.Club.findUserSubs(findUser);
+            })
+            .then(function (subs) {
+              result.ClubStore.userHas.subscribedClubList = subs;
+
+              res.send(result);
+            });
+        } else {
+          res.send(result);
+        }
+      })
+      .catch(function (e) {
+        res.status(404).send(e);
       });
-    });
-  }).then(function (posts) {
-    _.map(posts, function (post) {
-      post.setDataValue('createdAt', moment(post.createdAt).fromNow());
-      post.setDataValue('updatedAt', moment(post.updatedAt).fromNow());
-      return post;
-    });
-    result.PostStore.postList = posts;
+  });
+});
 
-    res.send(result);
+router.get('/club/:clubName/:postName', function (req, res) {
+  var postName = req.params.postName;
+  var clubName = req.params.clubName;
+  var token = req.headers.token;
+
+  var result = {
+    PostStore: {
+      readingPost: {},
+      postList: [],
+      commentList: []
+    },
+    ClubStore: {
+      defaultClubList: [],
+      userHas: {
+        createdClubList: [],
+        subscribedClubList: []
+      }
+    }
+  };
+
+  Goblin('Composer', 'Validator', function (G) {
+    G.Post.findOneByClub(clubName, postName)
+      .then(function (post) {
+        result.PostStore.readingPost = post;
+
+        return G.Comment.findInPost(postName);
+      })
+      .then(function (comments) {
+        result.PostStore.commentList = comments;
+
+        return G.Post.findPostByClub(clubName);
+      })
+      .then(function (posts) {
+        result.PostStore.postList = posts;
+
+        return G.Club.findDefaults();
+      })
+      .then(function (clubs) {
+        result.ClubStore.defaultClubList = clubs;
+
+        return G.User.isLogin(token);
+      })
+      .then(function (isLogin) {
+        if (isLogin) {
+          var findUser = isLogin;
+          G.Club.findUserCreated(findUser)
+            .then(function (created) {
+              result.ClubStore.userHas.createdClubList = created;
+
+              return G.Club.findUserSubs(findUser);
+            })
+            .then(function (subs) {
+              result.ClubStore.userHas.subscribedClubList = subs;
+
+              res.send(result);
+            });
+        } else {
+          res.send(result);
+        }
+      })
+      .catch(function (e) {
+        res.status(404).send(e);
+      });
   });
 });
 

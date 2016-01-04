@@ -29,10 +29,10 @@ app.use(function (req, res) {
 
 var model = require('./db');
 if (process.env.NODE_ENV === 'development') {
-  var tUser, tClub1, tClub2;
   model.sequelize.sync({force: true})
     .then(function () {
       return new Promise(function (resolve, reject) {
+        var tUser, tClub1, tClub2, tPost1, tPost2;
         (function loop(value) {
           if (value !== 10) {
             model
@@ -57,6 +57,7 @@ if (process.env.NODE_ENV === 'development') {
               })
               .then(function (club) {
                 tClub1 = club;
+                tClub1.setCreatedBy(tUser);
 
                 return model
                   .club
@@ -70,8 +71,11 @@ if (process.env.NODE_ENV === 'development') {
               })
               .then(function (club) {
                 tClub2 = club;
-                tClub2.setUsers(tUser);
+                tClub2.setSubscribedBy(tUser);
 
+                return tClub2.setCreatedBy(tUser);
+              })
+              .then(function () {
                 return model
                   .post
                   .create({
@@ -82,8 +86,27 @@ if (process.env.NODE_ENV === 'development') {
                   });
               })
               .then(function (post) {
-                post.setClubs(tClub1);
+                tPost1 = post;
 
+                return model.comment.create({
+                  commentId: '1q' + value + '1q',
+                  postId: post.get('uid'),
+                  content: 'Hello world!!!' + value,
+                  author: tUser.get('id')
+                });
+              })
+              .then(function (comment) {
+                return model.comment.create({
+                  commentId: '1q' + value + '1q1w',
+                  postId: tPost1.get('uid'),
+                  content: '2Hello world!!!' + value,
+                  author: tUser.get('id'),
+                  parentCommentId: comment.get('commentId')
+                });
+              }).then(function (comment) {
+                  return tPost1.setBelongingClubs(tClub1);
+              })
+              .then(function () {
                 return model
                   .post
                   .create({
@@ -94,23 +117,53 @@ if (process.env.NODE_ENV === 'development') {
                   });
               })
               .then(function (post) {
-                post.setClubs(tClub2);
+                tPost2 = post;
 
-                return true;
+                return model.comment.create({
+                  commentId: '1q' + value + '1q1w' + value,
+                  postId: post.get('uid'),
+                  content: '2Hello world!!!' + value,
+                  author: tUser.get('id')
+                });
+              })
+              .then(function (comment) {
+                return model.comment.create({
+                  commentId: '1q' + value + '1q1' + value,
+                  postId: tPost2.get('uid'),
+                  content: 'Hello world!!!' + value,
+                  author: tUser.get('id'),
+                  parentCommentId: comment.get('commentId')
+                });
+              })
+              .then(function (comment) {
+                return tPost2.setBelongingClubs(tClub2);
               })
               .then(function () {
-                console.log('test x ' + value);
+                return model.vote.findOrCreate({
+                  where: {
+                    votable: 'post',
+                    votableId: tPost1.get({plain: true}).uid,
+                    liker: tUser.get({plain: true}).id,
+                    kind: 1
+                  }
+                });
+              })
+              .spread(function (vote, created) {
+                return tPost1.increment({voteCount: 1, likeCount: 1});
+              })
+              .then(function () {
                 return value + 1;
               })
               .then(loop);
           } else if (value === 10) {
-            console.log('DB inital-Dev');
+            console.log('DB init - test case : ', value);
             app.listen(3001, function () {
-              console.log('Goblin Api listening-Dev. Val : ', value);
+              console.log('Goblin Api listening-dev');
             });
           }
           return Promise.resolve(value);
         })(0);
+
       });
     });
 } else if (process.env.NODE_ENV === 'production') {

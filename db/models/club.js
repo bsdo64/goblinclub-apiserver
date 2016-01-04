@@ -38,6 +38,7 @@ module.exports = function (sequelize, DataTypes) {
             model: models.club_post,
             unique: false
           },
+          as: 'clubHas',
           foreignKey: 'clubId'
         });
 
@@ -46,6 +47,8 @@ module.exports = function (sequelize, DataTypes) {
             model: models.club_user,
             unique: false
           },
+          as: 'createdBy',
+          constraints: false,
           foreignKey: 'clubId'
         });
 
@@ -54,6 +57,7 @@ module.exports = function (sequelize, DataTypes) {
             model: models.subscribe,
             unique: false
           },
+          as: 'subscribedBy',
           constraints: false,
           foreignKey: 'clubId'
         });

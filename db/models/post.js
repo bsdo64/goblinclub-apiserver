@@ -56,6 +56,7 @@ module.exports = function (sequelize, DataTypes) {
             model: models.club_post,
             unique: false
           },
+          as: 'belongingClubs',
           foreignKey: 'postId'
         });
 
