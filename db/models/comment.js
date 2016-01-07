@@ -14,7 +14,8 @@ module.exports = function (sequelize, DataTypes) {
       allowNull: false
     },
     content: {
-      type: DataTypes.TEXT
+      type: DataTypes.TEXT,
+      allowNull: false
     },
     voteCount: {
       type: DataTypes.INTEGER,
@@ -28,13 +29,13 @@ module.exports = function (sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       defaultValue: 0
     },
-    deletedAt: {
-      type: DataTypes.DATE,
-      defaultValue: null
-    },
     deleted: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
+    },
+    deletedAt: {
+      type: DataTypes.DATE,
+      defaultValue: null
     }
   }, {
     classMethods: {
@@ -50,7 +51,7 @@ module.exports = function (sequelize, DataTypes) {
           foreignKey: 'postId'
         });
 
-        Comment.hasMany(models.commentcontent, {
+        Comment.hasOne(models.commentcontent, {
           foreignKey: {
             name: 'commentId',
             onDelete: 'CASCADE'

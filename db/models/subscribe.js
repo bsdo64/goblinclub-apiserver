@@ -13,10 +13,12 @@ module.exports = function (sequelize, DataTypes) {
     },
     clubId: {
       type: DataTypes.INTEGER,
+      unique: true,
       allowNull: false
     },
     userId: {
       type: DataTypes.INTEGER,
+      unique: true,
       allowNull: false
     }
   });
