@@ -114,7 +114,6 @@ router.get('/club/:clubName', function (req, res) {
             .then(function (subs) {
               result.ClubStore.userHas.subscribedClubList = subs;
 
-              console.log('a');
               res.send(result);
             });
         } else {

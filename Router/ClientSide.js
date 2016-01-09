@@ -47,7 +47,10 @@ router.get('/best', function (req, res) {
 });
 
 router.post('/login', function (req, res) {
-  var user = req.body.user;
+  var user = {
+    email: req.body.email,
+    password: req.body.password
+  };
   Goblin('Composer', 'Validator', function (G) {
     G.validate.loginUser(user)
       .then(function (validateUser) {

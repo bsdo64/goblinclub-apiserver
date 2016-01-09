@@ -17,6 +17,11 @@ app.use(cors({origin: 'http://localhost:3000'}));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
+app.use(function (req, res, next) {
+  console.log(req.method, req.url);
+  next();
+});
+
 app.use('/compose', composeServer);
 app.use('/ajax', composeClient);
 
