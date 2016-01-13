@@ -95,9 +95,6 @@ router.post('/signin', function (req, res) {
   User.findOrCreate({
     where: newUser
   }).spread(function (user) {
-    console.log(user.get({
-      plain: true
-    }));
     try {
       var token = jsonWebToken.sign(user, 'secret', {expiresIn: '7d'});
 
@@ -160,7 +157,6 @@ router.post('/submit', function (req, res) {
     return createdPost.setClubs(clubs);
   }).then(function (club_post) {
     var postId = club_post[0][0].get()['postId'];
-    console.log(postId);
     return Post.find({
       where: {uid: postId},
       include: [
@@ -169,7 +165,6 @@ router.post('/submit', function (req, res) {
       ]
     });
   }).then(function (post) {
-    console.log(post);
     res.send(post);
   });
 });

@@ -43,7 +43,6 @@ router.get('/', function (req, res) {
       .then(function (clubs) {
         result.ClubStore.defaultClubList = clubs;
 
-        console.log(clubs);
         return G.User.isLogin(token);
       })
       .then(function (isLogin) {
@@ -63,17 +62,13 @@ router.get('/', function (req, res) {
             .then(function (subs) {
               result.ClubStore.userHas.subscribedClubList = subs;
 
-              console.log('a');
               res.send(result);
             });
         } else {
-          console.log('b');
           res.send(result);
         }
       })
       .catch(function (e) {
-        console.log(e);
-
         res.status(404).send(e);
       });
   });
@@ -117,12 +112,10 @@ router.get('/club/:clubName', function (req, res) {
               res.send(result);
             });
         } else {
-          console.log('b');
           res.send(result);
         }
       })
       .catch(function (e) {
-        console.log(e);
 
         res.status(404).send(e);
       });
