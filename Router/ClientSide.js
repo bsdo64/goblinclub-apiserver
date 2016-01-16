@@ -4,20 +4,17 @@
 var express = require('express');
 var router = express.Router();
 
-var jsonWebToken = require('jsonwebtoken');
 var _ = require('lodash');
 var shortId = require('shortid');
 var moment = require('moment');
+moment.locale('ko');
 
 var Model = require('../db');
 var Post = Model.post;
 var User = Model.user;
 var Club = Model.club;
-var Comment = Model.comment;
 
 var Goblin = require('../lib/index');
-
-moment.locale('ko');
 
 router.use(function timeLog(req, res, next) {
   console.log('Time: ', Date.now());
@@ -63,7 +60,6 @@ router.post('/login', function (req, res) {
         });
 
         res.json({
-          token: token,
           user: user,
           message: 'Loggined!'
         });
@@ -71,6 +67,12 @@ router.post('/login', function (req, res) {
       .catch(function (err) {
         if (err.name === 'ComposerError') {
           res.status(404).json(err);
+        } else if (err.isJoi) {
+          res.status(404).json({
+            type: 'Fatal Error',
+            message: '심각한 오류',
+            error: err
+          });
         } else if (err.name === 'ValidationError') {
           res.status(404).json(err);
         } else {
@@ -85,41 +87,33 @@ router.post('/login', function (req, res) {
 });
 
 router.post('/signin', function (req, res) {
-  var user = req.body.user;
   var newUser = {
-    email: user.signinEmail,
-    nick: user.signinNick,
-    password: user.signinPassword
+    email: req.body.signinEmail,
+    nick: req.body.signinNick,
+    password: req.body.signinPassword
   };
 
-  User.findOrCreate({
-    where: newUser
-  }).spread(function (user) {
-    try {
-      var token = jsonWebToken.sign(user, 'secret', {expiresIn: '7d'});
+  Goblin('Composer', 'Validator', function (G) {
+    G.validate.signinUser(newUser)
+      .then(function (validatedUser) {
+        return G.User.signin(validatedUser);
+      })
+      .then(function (result) {
+        res.cookie('token', result.token, {
+          expires: new Date(Date.now() + (24 * 60 * 60 * 1000)),
+          httpOnly: true
+        });
 
-      res.cookie('token', token, {
-        expires: new Date(Date.now() + (24 * 60 * 60 * 1000)),
-        httpOnly: true
+        res.json({
+          user: result.user
+        });
+      })
+      .catch(function (err) {
+        res.json({
+          message: 'can\'t make token',
+          error: err
+        });
       });
-
-      res.json({
-        token: token,
-        user: user,
-        message: 'Loggined!'
-      });
-    }catch (err) {
-      res.json({
-        message: 'can\'t make token',
-        error: err
-      });
-    }
-  }).catch(function (err) {
-    res.json({
-      type: 'signinUser',
-      message: '회원가입 오류',
-      error: err
-    });
   });
 });
 
