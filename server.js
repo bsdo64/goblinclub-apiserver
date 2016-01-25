@@ -3,6 +3,7 @@
  */
 var Express = require('express');
 var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
 var cors = require('cors');
 
 var composeServer = require('./Router/ServerSide');
@@ -15,6 +16,7 @@ app.locals.settings['x-powered-by'] = false;
 app.use(cors({origin: 'http://localhost:3000'}));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 app.use(function (req, res, next) {
   console.log(req.method, req.url);
@@ -36,7 +38,8 @@ var model = require('./db');
 if (process.env.NODE_ENV === 'development') {
   model.sequelize.sync({force: true})
     .then(function () {
-      Faker.test(app);
+      // Faker.test(app);
+      Faker.test2(app);
     });
 } else if (process.env.NODE_ENV === 'production') {
   model.sequelize.sync({force: false})

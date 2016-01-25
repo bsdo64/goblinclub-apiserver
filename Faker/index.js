@@ -5,6 +5,7 @@
 
 var model = require('../db');
 var faker = require('faker');
+var _ = require('lodash');
 var shortId = require('shortid');
 var Promise = require('bluebird');
 var async = require('async');
@@ -187,6 +188,168 @@ Faker.prototype.test = function (app) {
       console.log('Goblin Api listening-dev');
     });
   });
+};
+
+var Geek = {
+  GB: {
+    name: '사업',
+    url: 'business',
+    description: 'Geek of Business',
+    type: 'default',
+    creator: 1
+  },
+  GC: {
+    name: '고전',
+    url: 'classics',
+    description: 'Geek of Classics',
+    type: 'default',
+    creator: 1
+  },
+  GA: {
+    name: '예술',
+    url: 'arts',
+    description: 'Geek of Arts',
+    type: 'default',
+    creator: 1
+  },
+  GCS: {
+    name: '컴퓨터',
+    url: 'computer',
+    description: 'Geek of Computer Science',
+    type: 'default',
+    creator: 1
+  },
+  GCC: {
+    name: '잡담',
+    url: 'communications',
+    description: 'Geek of communications',
+    type: 'default',
+    creator: 1
+  },
+  GE: {
+    name: '공학',
+    url: 'engineering',
+    description: 'Geek of engineering',
+    type: 'default',
+    creator: 1
+  },
+  GH: {
+    name: '인문학',
+    url: 'humanities',
+    description: 'Geek of Humanities',
+    type: 'default',
+    creator: 1
+  },
+  GIT: {
+    name: 'IT',
+    url: 'it',
+    description: 'Geek of information technology',
+    type: 'default',
+    creator: 1
+  },
+  GJ: {
+    name: '법학',
+    url: 'law',
+    description: 'Geek of Jurisprudence',
+    type: 'default',
+    creator: 1
+  },
+  GM: {
+    name: '수학',
+    url: 'math',
+    description: 'Geek of Math',
+    type: 'default',
+    creator: 1
+  },
+  GMD: {
+    name: '의학',
+    url: 'medicine',
+    description: 'Geek of Medicine',
+    type: 'default',
+    creator: 1
+  },
+  GMU: {
+    name: '음악',
+    url: 'music',
+    description: 'Geek of music',
+    type: 'default',
+    creator: 1
+  },
+  GP: {
+    name: '철학',
+    url: 'philosophy',
+    description: 'Geek of Philosophy',
+    type: 'default',
+    creator: 1
+  },
+  GS: {
+    name: '과학',
+    url: 'science',
+    description: 'Geek of Science (Physics, Chemistry, Biology, etc.)',
+    type: 'default',
+    creator: 1
+  },
+  GSS: {
+    name: '사회과학',
+    url: 'socialscience',
+    description: 'Geek of Social Science (Psychology, Sociology, etc.)',
+    type: 'default',
+    creator: 1
+  },
+  GTW: {
+    name: '테크니컬라이팅',
+    url: 'technicalwriting',
+    description: 'Geek of Technical Writing',
+    type: 'default',
+    creator: 1
+  },
+  GAT: {
+    name: '거래',
+    url: 'trade',
+    description: 'Geek of All Trades',
+    type: 'default',
+    creator: 1
+  }
+};
+/**
+ * Faker test2 method
+ * @method
+ * @public
+ * @param {Object} app Express app instance
+ * @return {void}
+ */
+Faker.prototype.test2 = function (app) {
+  model
+    .user
+    .create({
+      email: 'webmaster@gobblinclub.com',
+      nick: '고블린클럽',
+      password: 'gobblinclub12'
+    })
+    .then(function (user) {
+      _.forEach(Geek, function (val, key) {
+        if (key !== 'GAT') {
+          model
+            .club
+            .create(val)
+            .then(function (club) {
+              club.setCreatedBy(user);
+            });
+        } else {
+          return model
+            .club
+            .create(val)
+            .then(function (club) {
+              club.setCreatedBy(user);
+            });
+        }
+      });
+    })
+    .then(function () {
+      app.listen(3001, function () {
+        console.log('Goblin Api listening-dev');
+      });
+    });
 };
 
 module.exports = new Faker();

@@ -60,6 +60,30 @@ module.exports = function (sequelize, DataTypes) {
           foreignKey: 'postId'
         });
 
+        Post.belongsToMany(models.club, {
+          through: {
+            model: models.club_post,
+            unique: false
+          },
+          scope: {
+            type: 'default'
+          },
+          as: 'belongingDefaultClub',
+          foreignKey: 'postId'
+        });
+
+        Post.belongsToMany(models.club, {
+          through: {
+            model: models.club_post,
+            unique: false
+          },
+          scope: {
+            type: 'create'
+          },
+          as: 'belongingSubClubs',
+          foreignKey: 'postId'
+        });
+
         Post.hasMany(models.comment, {
           foreignKey: 'postId',
           onDelete: 'CASCADE'

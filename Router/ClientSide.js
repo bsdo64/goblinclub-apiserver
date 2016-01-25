@@ -22,13 +22,15 @@ router.use(function timeLog(req, res, next) {
 });
 
 router.get('/best', function (req, res) {
+  var p = req.query.p;
+
   var result = {
     PostStore: {},
     ClubStore: {}
   };
 
   Goblin('Composer', function (G) {
-    G.Post.findBest()
+    G.Post.findBest(p)
       .then(function (posts) {
         result.PostStore.bestList = posts;
         return G.Club.findDefaults();
@@ -117,49 +119,67 @@ router.post('/signin', function (req, res) {
   });
 });
 
-router.post('/submit', function (req, res) {
-  var post = req.body.post;
-  var author = req.body.author;
+router.post('/submit/club', function (req, res) {
+  var club = req.body;
+  var token = req.cookies.token;
 
-  var createdPost, clubList = [];
-
-  if (!post || !author) {
+  if (!club) {
     res.status(400).json({
       message: 'Fill out',
       error: 'Fill out'
     });
   }
 
-  User.find({
-    where: author
-  }).then(function (user) {
-    return Post.create({
-      uid: shortId.generate(),
-      title: post.title,
-      content: post.content,
-      author: user.get('id')
-    });
-  }).then(function (newPost) {
-    createdPost = newPost;
-    clubList.push(post.defaultClubList);
-    clubList.push(post.subscribeClubList);
-    _.flatten(clubList, true);
-    _.compact(clubList);
+  Goblin('Composer', 'Validator', function (G) {
+    G.User.isLogin(token)
+      .then(function (isLogin) {
+        if (isLogin) {
+          return G.Club.createClub(club, isLogin)
+            .then(function (newClub) {
+              res.send(newClub);
+            });
+        } else {
+          res.status(404).send({
+            message: 'Not Logined',
+            error: 'Not Logined'
+          });
+        }
+      })
+      .catch(function (e) {
+        res.status(404).send(e);
+      });
+  });
+});
 
-    return Club.findAll({where: {id: {$or: clubList}}});
-  }).then(function (clubs) {
-    return createdPost.setClubs(clubs);
-  }).then(function (club_post) {
-    var postId = club_post[0][0].get()['postId'];
-    return Post.find({
-      where: {uid: postId},
-      include: [
-        {model: User, required: true, attributes: ['nick', 'id']},
-        {model: Club, required: true, as: 'belongingClubs'}
-      ]
+router.post('/submit', function (req, res) {
+  var post = req.body;
+  var token = req.cookies.token;
+
+  if (!post) {
+    res.status(400).json({
+      message: 'Fill out',
+      error: 'Fill out'
     });
-  }).then(function (post) {
-    res.send(post);
+  }
+
+  Goblin('Composer', 'Validator', function (G) {
+    G.User.isLogin(token)
+      .then(function (isLogin) {
+        if (isLogin) {
+          return G.Post.createPost(post, isLogin)
+            .then(function (newPost) {
+              res.send(newPost);
+            });
+        } else {
+          res.status(404).send({
+            message: 'Not Logined',
+            error: 'Not Logined'
+          });
+        }
+      })
+      .catch(function (e) {
+        res.status(404).send(e);
+      });
   });
 });
 

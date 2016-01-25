@@ -3,18 +3,11 @@
  */
 var express = require('express');
 var router = express.Router();
-var _ = require('lodash');
-var moment = require('moment');
 
-var Model = require('../db');
-var User = Model.user;
-var Post = Model.post;
-var Club = Model.club;
-var Comment = Model.comment;
+var moment = require('moment');
+moment.locale('ko');
 
 var Goblin = require('../lib/index');
-
-moment.locale('ko');
 
 router.get('/', function (req, res) {
   var token = req.headers.token;
@@ -75,6 +68,7 @@ router.get('/', function (req, res) {
 });
 
 router.get('/club/:clubName', function (req, res) {
+  var p = req.query.p;
   var token = req.headers.token;
   var clubName = req.params.clubName;
 
@@ -86,7 +80,7 @@ router.get('/club/:clubName', function (req, res) {
   };
 
   Goblin('Composer', 'Validator', function (G) {
-    G.Post.findPostByClub(clubName)
+    G.Post.findPostByClub(clubName, p)
       .then(function (posts) {
         result.PostStore.postList = posts;
 
@@ -122,49 +116,6 @@ router.get('/club/:clubName', function (req, res) {
   });
 });
 
-router.get('/club/:clubName/submit', function (req, res) {
-  var user = req.query.user;
-
-  var result = {
-    PostStore: {},
-    ClubStore: {
-      userHas: {}
-    }
-  };
-
-  var findUser;
-
-  Club
-    .findAll({where: {type: 'default'}})
-    .then(function (defaultClubs) {
-      result.ClubStore.defaultClubList = defaultClubs;
-
-      if (user && user.email) {
-        User
-          .find({where: {email: user.email}})
-          .then(function (user) {
-            findUser = user;
-            return Club.findAll({where: {creator: user.id}});
-          })
-          .then(function (userCreatedClubList) {
-            result.ClubStore.userHas = {
-              createdClubList: userCreatedClubList
-            };
-            return findUser.getUserSubscribedClubs();
-          })
-          .then(function (userSubscribedClubs) {
-            result.ClubStore.userHas = {
-              subscribedClubList: userSubscribedClubs
-            };
-
-            res.send(result);
-          });
-      } else {
-        res.send(result);
-      }
-    });
-});
-
 router.get('/submit', function (req, res) {
   var token = req.headers.token;
 
@@ -184,6 +135,44 @@ router.get('/submit', function (req, res) {
       })
       .then(function (clubs) {
         result.ClubStore.defaultClubList= clubs;
+
+        return G.Club.findUserCreated(findUser);
+      })
+      .then(function (created) {
+        result.ClubStore.userHas.createdClubList = created;
+
+        return G.Club.findUserSubs(findUser);
+      })
+      .then(function (subs) {
+        result.ClubStore.userHas.subscribedClubList = subs;
+
+        res.send(result);
+      })
+      .catch(function (err) {
+        res.status(404).send(err);
+      });
+  });
+});
+
+router.get('/submit/club', function (req, res) {
+  var token = req.headers.token;
+
+  var result = {
+    ClubStore: {
+      userHas: {}
+    }
+  };
+
+  Goblin('Composer', function (G) {
+    var findUser;
+    G.User.needLogin(token)
+      .then(function (user) {
+        findUser = user;
+
+        return G.Club.findDefaults();
+      })
+      .then(function (clubs) {
+        result.ClubStore.defaultClubList = clubs;
 
         return G.Club.findUserCreated(findUser);
       })

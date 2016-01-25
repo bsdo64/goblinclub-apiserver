@@ -21,7 +21,7 @@ module.exports = {
     },
     password: {
       is: {
-        args: /([A-Z])\w+/g,
+        args: /([A-Za-z0-9])\w+/g,
         msg: '비밀번호는 6~21자리 숫자와 문자를 입력해주세요'
       }
     }
