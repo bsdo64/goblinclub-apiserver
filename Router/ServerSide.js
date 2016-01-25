@@ -276,7 +276,6 @@ router.get('/club/:clubName/:postName', function (req, res) {
         return G.User.isLogin(token);
       })
       .then(function (isLogin) {
-
         if (isLogin) {
           var findUser = isLogin;
           G.Club.findUserCreated(findUser)

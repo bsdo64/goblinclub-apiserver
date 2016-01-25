@@ -3,16 +3,8 @@
  */
 var express = require('express');
 var router = express.Router();
-
-var _ = require('lodash');
-var shortId = require('shortid');
 var moment = require('moment');
 moment.locale('ko');
-
-var Model = require('../db');
-var Post = Model.post;
-var User = Model.user;
-var Club = Model.club;
 
 var Goblin = require('../lib/index');
 
