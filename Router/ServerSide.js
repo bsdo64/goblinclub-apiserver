@@ -116,6 +116,72 @@ router.get('/club/:clubName', function (req, res) {
   });
 });
 
+router.get('/club/:clubName/:postName', function (req, res) {
+  var postName = req.params.postName;
+  var clubName = req.params.clubName;
+  var token = req.headers.token;
+
+  var result = {
+    PostStore: {
+      readingPost: {},
+      postList: [],
+      commentList: []
+    },
+    ClubStore: {
+      defaultClubList: [],
+      userHas: {
+        createdClubList: [],
+        subscribedClubList: []
+      }
+    }
+  };
+
+  Goblin('Composer', 'Validator', function (G) {
+    G.Post.findOneByClub(clubName, postName)
+      .then(function (post) {
+        result.PostStore.readingPost = post;
+
+        return G.Comment.findInPost(postName);
+      })
+      .then(function (comments) {
+        result.PostStore.commentList = comments;
+
+        return G.Post.findPostByClub(clubName);
+      })
+      .then(function (posts) {
+        result.PostStore.postList = posts;
+
+        return G.Club.findDefaults();
+      })
+      .then(function (clubs) {
+        result.ClubStore.defaultClubList = clubs;
+
+        return G.User.isLogin(token);
+      })
+      .then(function (isLogin) {
+        if (isLogin) {
+          var findUser = isLogin;
+          G.Club.findUserCreated(findUser)
+            .then(function (created) {
+              result.ClubStore.userHas.createdClubList = created;
+
+              return G.Club.findUserSubs(findUser);
+            })
+            .then(function (subs) {
+              result.ClubStore.userHas.subscribedClubList = subs;
+
+              res.send(result);
+            });
+        } else {
+          res.send(result);
+        }
+      })
+      .catch(function (e) {
+        res.status(404).send(e);
+      });
+  });
+});
+
 router.get('/submit', function (req, res) {
   var token = req.headers.token;
 
@@ -229,72 +295,6 @@ router.get('/notfound', function (req, res) {
       })
       .catch(function (err) {
         res.status(404).send(err);
-      });
-  });
-});
-
-router.get('/club/:clubName/:postName', function (req, res) {
-  var postName = req.params.postName;
-  var clubName = req.params.clubName;
-  var token = req.headers.token;
-
-  var result = {
-    PostStore: {
-      readingPost: {},
-      postList: [],
-      commentList: []
-    },
-    ClubStore: {
-      defaultClubList: [],
-      userHas: {
-        createdClubList: [],
-        subscribedClubList: []
-      }
-    }
-  };
-
-  Goblin('Composer', 'Validator', function (G) {
-    G.Post.findOneByClub(clubName, postName)
-      .then(function (post) {
-        result.PostStore.readingPost = post;
-
-        return G.Comment.findInPost(postName);
-      })
-      .then(function (comments) {
-        result.PostStore.commentList = comments;
-
-        return G.Post.findPostByClub(clubName);
-      })
-      .then(function (posts) {
-        result.PostStore.postList = posts;
-
-        return G.Club.findDefaults();
-      })
-      .then(function (clubs) {
-        result.ClubStore.defaultClubList = clubs;
-
-        return G.User.isLogin(token);
-      })
-      .then(function (isLogin) {
-        if (isLogin) {
-          var findUser = isLogin;
-          G.Club.findUserCreated(findUser)
-            .then(function (created) {
-              result.ClubStore.userHas.createdClubList = created;
-
-              return G.Club.findUserSubs(findUser);
-            })
-            .then(function (subs) {
-              result.ClubStore.userHas.subscribedClubList = subs;
-
-              res.send(result);
-            });
-        } else {
-          res.send(result);
-        }
-      })
-      .catch(function (e) {
-        res.status(404).send(e);
       });
   });
 });

@@ -4,12 +4,10 @@
   },
   "rules": {
     // Jasmine
-    "no-focused-tests": 2,
     "no-disabled-tests": 1,
     "no-suite-dupes": 1,
     "no-spec-dupes": 1,
     "missing-expect": 0,
-    "no-suite-callback-args": 2,
     "valid-expect": 1
   },
   "plugins": [

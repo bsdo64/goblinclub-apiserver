@@ -1,12 +1,14 @@
 {
   "restartable": "rs",
   "ignore": [
+    ".idea",
     ".git",
-    "node_modules/**/node_modules"
+    "node_modules/**/node_modules",
+    "spec"
   ],
   "verbose": true,
   "execMap": {
-    "js": "node server.js --harmony"
+    "js": "node server.js"
   },
   "watch": [
     "*.*"

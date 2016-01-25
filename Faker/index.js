@@ -316,10 +316,10 @@ var Geek = {
  * @method
  * @public
  * @param {Object} app Express app instance
- * @return {void}
+ * @return {Promise}
  */
-Faker.prototype.test2 = function (app) {
-  model
+Faker.prototype.test2 = function (app, cb) {
+  return model
     .user
     .create({
       email: 'webmaster@gobblinclub.com',
@@ -333,22 +333,20 @@ Faker.prototype.test2 = function (app) {
             .club
             .create(val)
             .then(function (club) {
-              club.setCreatedBy(user);
+              return club.setCreatedBy(user);
             });
         } else {
           return model
             .club
             .create(val)
             .then(function (club) {
-              club.setCreatedBy(user);
+              return club.setCreatedBy(user);
             });
         }
       });
     })
     .then(function () {
-      app.listen(3001, function () {
-        console.log('Goblin Api listening-dev');
-      });
+      cb();
     });
 };
 

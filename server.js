@@ -10,7 +10,7 @@ var composeServer = require('./Router/ServerSide');
 var composeClient = require('./Router/ClientSide');
 
 var app = Express();
-process.env.NODE_ENV = (process.env.NODE_ENV && (process.env.NODE_ENV).trim().toLowerCase() === 'production' )? 'production' : 'development';
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 app.locals.settings['x-powered-by'] = false;
 app.use(cors({origin: 'http://localhost:3000'}));
@@ -38,17 +38,17 @@ var model = require('./db');
 if (process.env.NODE_ENV === 'development') {
   model.sequelize.sync({force: true})
     .then(function () {
-      // Faker.test(app);
-      Faker.test2(app);
+      Faker.test2(app, function () {
+        app.listen(3001, function () {
+          console.log('DB inital-DEV');
+        });
+      });
     });
 } else if (process.env.NODE_ENV === 'production') {
   model.sequelize.sync({force: false})
     .then(function () {
-      console.log('DB inital-Prod');
-    })
-    .then(function () {
       app.listen(3001, function () {
-        console.log('Goblin Api listening-Prod');
+        console.log('DB inital-PRODCTION');
       });
     });
 }

@@ -3,10 +3,12 @@
  */
 var fs = require('fs');
 var path = require('path');
-var config = require('./config').DB;
+var env = process.env.NODE_ENV || 'development';
+var config = require('./config')[env];
 var Sequelize = require('sequelize');
-require('sequelize-hierarchy')(Sequelize);
+var DB = {};
 
+require('sequelize-hierarchy')(Sequelize);
 var sequelize = new Sequelize(config.database, config.user, config.password, {
   host: config.host,
   dialect: 'mysql',
@@ -17,7 +19,6 @@ var sequelize = new Sequelize(config.database, config.user, config.password, {
   },
   logging: false
 });
-var DB = {};
 
 fs
   .readdirSync((__dirname + '/models'))
