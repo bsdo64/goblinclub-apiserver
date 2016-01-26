@@ -19,7 +19,7 @@ describe('API Test', function () {
   beforeAll(function (done) {
     model.sequelize.sync({force: true})
       .then(function () {
-        server = app.listen(3002, function () {
+        server = app.listen(3031, function () {
           console.log('DB inital-TEST');
           done();
         });

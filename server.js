@@ -19,7 +19,7 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 app.use(function (req, res, next) {
-  console.log(req.method, req.url);
+  // console.log(req.method, req.url);
   next();
 });
 
@@ -27,7 +27,7 @@ app.use('/compose', composeServer);
 app.use('/ajax', composeClient);
 
 app.use(function (req, res) {
-  console.log(req.url, 'There\'s no endpoint!');
+  // console.log(req.url, 'There\'s no endpoint!');
   res.status(404).json({
     msg: 'There\'s no endpoint!'
   });

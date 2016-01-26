@@ -1,0 +1,23 @@
+{
+  "user" : {
+    "email": "test@test.com",
+    "nick": "닉네임",
+    "password": "test1234"
+  },
+  "club": {
+    "default": {
+      "name" : "testclub",
+      "url" : "testclub",
+      "description" : "testclub"
+    },
+    "create": {
+      "name" : "testclub2",
+      "url" : "testclub2",
+      "description" : "testclub2"
+    }
+  },
+  "post": {
+    "title": "testpost",
+    "content": "testpost"
+  }
+}
