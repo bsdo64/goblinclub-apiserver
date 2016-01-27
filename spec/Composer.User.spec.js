@@ -239,11 +239,4 @@ describe('Composer Test - User', function () {
       });
     });
   });
-
-  describe('Comment - ', function () {
-
-    it('find one post', function (done) {
-      done();
-    });
-  });
 });

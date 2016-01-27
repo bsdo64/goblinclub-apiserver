@@ -151,5 +151,16 @@ describe('Composer Test - Vote', function () {
           });
       });
     });
+
+    afterAll(function (done) {
+      Goblin('Composer', 'Validator', function (G) {
+        G.User
+          .removeOneByUser(user)
+          .then(function (removed) {
+            expect(removed).toEqual(1);
+            done();
+          });
+      });
+    });
   });
 });
