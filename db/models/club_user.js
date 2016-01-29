@@ -12,7 +12,7 @@ module.exports = function (sequelize, DataTypes) {
       primaryKey: true
     },
     clubId: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       allowNull: false
     },
     userId: {

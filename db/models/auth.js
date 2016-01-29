@@ -11,11 +11,10 @@ module.exports = function (sequelize, DataTypes) {
     },
     emailVerify: {
       type: DataTypes.BOOLEAN,
-      allowNull: false
+      defaultValue: false
     },
     emailVerifyAt: {
-      type: DataTypes.DATE,
-      allowNull: false
+      type: DataTypes.DATE
     },
     dropUser: {
       type: DataTypes.BOOLEAN,

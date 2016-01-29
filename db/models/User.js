@@ -30,6 +30,7 @@ module.exports = function (sequelize, DataTypes) {
     classMethods: {
       associate: function (models) {
         User.hasOne(models.auth);
+        User.hasOne(models.point);
 
         User.hasMany(models.post, {
           foreignKey: {
