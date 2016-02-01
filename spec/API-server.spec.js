@@ -37,7 +37,6 @@ describe('API Test', function () {
         .expect(200)
         .expect(function (res) {
           expect(res.body.PostStore.bestList).toEqual([]);
-          expect(res.body.ClubStore.userHas).toEqual({});
           expect(res.body.ClubStore.defaultClubList).toEqual([]);
           expect(res.body.UserStore.loadedAuth).toEqual(false);
           expect(res.body.UserStore.authFail).toEqual(false);
