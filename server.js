@@ -45,10 +45,12 @@ if (process.env.NODE_ENV === 'development') {
       });
     });
 } else if (process.env.NODE_ENV === 'production') {
-  model.sequelize.sync({force: false})
+  model.sequelize.sync({force: true})
     .then(function () {
-      app.listen(3001, function () {
-        console.log('DB inital-PRODCTION');
+      Faker.test2(app, function () {
+        app.listen(3001, function () {
+          console.log('DB inital-PRODCTION');
+        });
       });
     });
 }

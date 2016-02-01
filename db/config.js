@@ -13,5 +13,11 @@ module.exports = {
     database: 'goblinclub_dev',
     user: 'goblinclub',
     password: 'goblinclub'
+  },
+  production: {
+    host: 'localhost',
+    database: 'goblinclub',
+    user: 'goblinclub',
+    password: 'goblinclub'
   }
 };
