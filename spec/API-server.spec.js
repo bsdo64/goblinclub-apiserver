@@ -3,7 +3,7 @@
  */
 var request = require('supertest');
 var app = require('../server.js');
-var model = require('../db/index.js');
+var model = require('../db/models/index.js');
 var server;
 
 function doneNext(done) {

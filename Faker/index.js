@@ -3,7 +3,6 @@
  */
 /** @module Faker */
 
-var model = require('../db');
 var _ = require('lodash');
 var Goblin = require('../lib/index');
 

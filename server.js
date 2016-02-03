@@ -34,7 +34,7 @@ app.use(function (req, res) {
 });
 
 var Faker = require('./Faker');
-var model = require('./db');
+var model = require('./db/models/index');
 if (process.env.NODE_ENV === 'development') {
   model.sequelize.sync({force: true})
     .then(function () {

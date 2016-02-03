@@ -3,15 +3,16 @@
  */
 var fs = require('fs');
 var path = require('path');
+var basename = path.basename(module.filename);
 var env = process.env.NODE_ENV || 'development';
-var config = require('./config')[env];
+var config = require('./../config')[env];
 var Sequelize = require('sequelize');
 var DB = {};
 
 require('sequelize-hierarchy')(Sequelize);
-var sequelize = new Sequelize(config.database, config.user, config.password, {
+var sequelize = new Sequelize(config.database, config.username, config.password, {
   host: config.host,
-  dialect: 'mysql',
+  dialect: config.dialect,
   pool: {
     max: 10,
     min: 0,
@@ -21,9 +22,12 @@ var sequelize = new Sequelize(config.database, config.user, config.password, {
 });
 
 fs
-  .readdirSync((__dirname + '/models'))
+  .readdirSync(__dirname)
+  .filter(function(file) {
+    return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
+  })
   .forEach(function (file) {
-    var model = sequelize.import(path.join(__dirname, '/models', file));
+    var model = sequelize.import(path.join(__dirname, file));
     DB[model.name] = model;
   });
 

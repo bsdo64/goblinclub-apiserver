@@ -172,7 +172,7 @@ router.post('/submit', function (req, res) {
 
 router.get('/club/:clubName', function (req, res) {
   var clubName = req.params.clubName;
-  var token = req.headers.token;
+  var token = req.cookies.token;
 
   var result = {
     PostStore: {
@@ -228,7 +228,7 @@ router.get('/club/:clubName', function (req, res) {
 router.get('/club/:clubName/:postName', function (req, res) {
   var postName = req.params.postName;
   var clubName = req.params.clubName;
-  var token = req.headers.token;
+  var token = req.cookies.token;
 
   var result = {
     PostStore: {

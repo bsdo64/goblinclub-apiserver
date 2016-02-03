@@ -5,19 +5,22 @@ module.exports = {
   development: {
     host: 'localhost',
     database: 'goblinclub',
-    user: 'goblinclub',
-    password: 'goblinclub'
+    username: 'goblinclub',
+    password: 'goblinclub',
+    dialect: 'mysql'
   },
   test: {
     host: 'localhost',
     database: 'goblinclub_dev',
-    user: 'goblinclub',
-    password: 'goblinclub'
+    username: 'goblinclub',
+    password: 'goblinclub',
+    dialect: 'mysql'
   },
   production: {
     host: 'localhost',
     database: 'goblinclub',
-    user: 'goblinclub',
-    password: 'goblinclub'
+    username: 'goblinclub',
+    password: 'goblinclub',
+    dialect: 'mysql'
   }
 };

@@ -9,7 +9,7 @@ describe('Composer Test - Point', function () {
   var defaultClub = require('./helpers/data.json').club.default;
   var createdClub = require('./helpers/data.json').club.create;
 
-  var Model = require('../db/index');
+  var Model = require('../db/models/index');
   var Point = Model.point;
   var PointLog = Model.point_log;
 
