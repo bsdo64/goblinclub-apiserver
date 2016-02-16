@@ -42,14 +42,14 @@ router.post('/login', function (req, res) {
       .then(function (validateUser) {
         return G.User.login(validateUser);
       })
-      .then(function (token) {
-        res.cookie('token', token, {
+      .then(function (result) {
+        res.cookie('token', result.token, {
           expires: new Date(Date.now() + (24 * 60 * 60 * 1000)),
           httpOnly: true
         });
 
         res.json({
-          user: user,
+          user: result.user,
           message: 'Loggined!'
         });
       })
