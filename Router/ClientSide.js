@@ -10,6 +10,7 @@ var Goblin = require('../lib/index');
 
 router.get('/best', function (req, res) {
   var p = req.query.p;
+  var token = req.cookies.token;
 
   var result = {
     PostStore: {},
@@ -17,17 +18,21 @@ router.get('/best', function (req, res) {
   };
 
   Goblin('Composer', function (G) {
-    G.Post.findBest(p)
-      .then(function (posts) {
-        result.PostStore.bestList = posts;
-        return G.Club.findDefaults();
-      })
-      .then(function (clubs) {
-        result.ClubStore.defaultClubList = clubs;
-        res.json(result);
-      })
-      .catch(function (err) {
-        res.status(404).json(err);
+    G.User
+      .isLogin(token)
+      .then(function (user) {
+        G.Post.findBest(p, user)
+          .then(function (posts) {
+            result.PostStore.bestList = posts;
+            return G.Club.findDefaults();
+          })
+          .then(function (clubs) {
+            result.ClubStore.defaultClubList = clubs;
+            res.json(result);
+          })
+          .catch(function (err) {
+            res.status(404).json(err);
+          });
       });
   });
 });

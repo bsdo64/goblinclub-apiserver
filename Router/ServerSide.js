@@ -70,14 +70,20 @@ router.use('/', function (req, res, next) {
 
 router.get('/', function (req, res) {
   Goblin('Composer', 'Validator', function (G) {
-    G.Post.findBest()
-      .then(function (posts) {
-        res.resultData.PostStore.bestList = posts;
+    var p = req.query.p;
+    var token = req.headers.token;
 
-        res.send(res.resultData);
-      })
-      .catch(function (e) {
-        res.status(404).send(e);
+    G.User.isLogin(token)
+      .then(function (user) {
+        G.Post.findBest(p, user)
+          .then(function (posts) {
+            res.resultData.PostStore.bestList = posts;
+
+            res.send(res.resultData);
+          })
+          .catch(function (e) {
+            res.status(404).send(e);
+          });
       });
   });
 });

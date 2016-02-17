@@ -84,6 +84,15 @@ module.exports = function (sequelize, DataTypes) {
           foreignKey: 'postId'
         });
 
+        Post.hasMany(models.vote, {
+          as: 'userVoted',
+          foreignKey: 'votableId',
+          onDelete: 'CASCADE',
+          scope: {
+            votable: 'post'
+          }
+        });
+
         Post.hasMany(models.comment, {
           foreignKey: 'postId',
           onDelete: 'CASCADE'
