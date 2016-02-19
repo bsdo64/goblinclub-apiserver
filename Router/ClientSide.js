@@ -111,6 +111,149 @@ router.post('/signin', function (req, res) {
   });
 });
 
+router.post('/post/like/:uid', function (req, res) {
+  var token = req.cookies.token;
+  var uid = req.params.uid;
+
+  Goblin('Composer', 'Validator', function (G) {
+    G.User.isLogin(token)
+      .then(function (user) {
+        if (user) {
+          G.Post.like(uid, user)
+            .then(function (post) {
+              res.json({result: 'ok'});
+            });
+        } else {
+          res.json({
+            message: 'Not Logined',
+            error: 'Not Logined'
+          });
+        }
+      })
+      .catch(function (err) {
+        res.json({
+          message: 'can\'t make token',
+          error: err
+        });
+      });
+  });
+});
+
+router.post('/post/dislike/:uid', function (req, res) {
+  var token = req.cookies.token;
+  var uid = req.params.uid;
+
+  Goblin('Composer', 'Validator', function (G) {
+    G.User.isLogin(token)
+      .then(function (user) {
+        if (user) {
+          G.Post.dislike(uid, user)
+            .then(function (post) {
+              res.json({result: 'ok'});
+            });
+        } else {
+          res.json({
+            message: 'Not Logined',
+            error: 'Not Logined'
+          });
+        }
+      })
+      .catch(function (err) {
+        res.json({
+          message: 'can\'t make token',
+          error: err
+        });
+      });
+  });
+});
+
+router.post('/post/dislikeFromLike/:uid', function (req, res) {
+  var token = req.cookies.token;
+  var uid = req.params.uid;
+
+  Goblin('Composer', 'Validator', function (G) {
+    G.User.isLogin(token)
+      .then(function (user) {
+        if (user) {
+          G.Post.dislikeFromLike(uid, user)
+            .then(function (post) {
+              res.json({result: 'ok'});
+            });
+        } else {
+          res.json({
+            message: 'Not Logined',
+            error: 'Not Logined'
+          });
+        }
+      })
+      .catch(function (err) {
+        res.json({
+          message: 'can\'t make token',
+          error: err
+        });
+      });
+  });
+});
+
+router.post('/post/likeFromDislike/:uid', function (req, res) {
+  var token = req.cookies.token;
+  var uid = req.params.uid;
+
+  Goblin('Composer', 'Validator', function (G) {
+    G.User.isLogin(token)
+      .then(function (user) {
+        if (user) {
+          G.Post.likeFromDislike(uid, user)
+            .then(function (post) {
+              res.json({result: 'ok'});
+            });
+        } else {
+          res.json({
+            message: 'Not Logined',
+            error: 'Not Logined'
+          });
+        }
+      })
+      .catch(function (err) {
+        res.json({
+          message: 'can\'t make token',
+          error: err
+        });
+      });
+  });
+});
+
+router.post('/submit/comment', function (req, res) {
+  var commentId = req.body.commentId;
+  var postId = req.body.postId;
+  var content = req.body.content;
+  var token = req.cookies.token;
+
+  Goblin('Composer', 'Validator', function (G) {
+    G.User.isLogin(token)
+      .then(function (isLogin) {
+        if (isLogin) {
+          return G.Comment.createComment(content, postId, isLogin, commentId)
+            .then(function (comment) {
+              var result = {
+                result: 'ok',
+                comment: comment
+              };
+              res.send(result);
+            });
+        } else {
+          res.status(404).send({
+            message: 'Not Logined',
+            error: 'Not Logined'
+          });
+        }
+      })
+      .catch(function (e) {
+        res.status(404).send(e);
+      });
+  });
+});
+
 router.post('/submit/club', function (req, res) {
   var club = req.body;
   var token = req.cookies.token;
@@ -255,7 +398,7 @@ router.get('/club/:clubName/:postName', function (req, res) {
       .then(function (post) {
         result.PostStore.readingPost = post;
 
-        return G.Comment.findInPost(postName);
+        return G.Comment.findByPostId(postName);
       })
       .then(function (comments) {
         result.PostStore.commentList = comments;

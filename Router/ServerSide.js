@@ -114,7 +114,7 @@ router.get('/club/:clubName/:postName', function (req, res) {
       .then(function (post) {
         res.resultData.PostStore.readingPost = post;
 
-        return G.Comment.findInPost(postName);
+        return G.Comment.findByPostId(postName);
       })
       .then(function (comments) {
         res.resultData.PostStore.commentList = comments;

@@ -12,7 +12,8 @@ module.exports = function (sequelize, DataTypes) {
     votableId: {
       comment: '투표한 게시물 아이디',
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      unique: true
     },
     liker: {
       comment: '회원 아이디',
