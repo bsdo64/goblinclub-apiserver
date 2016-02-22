@@ -30,6 +30,9 @@ router.use('/', function (req, res, next) {
       loadedAuth: false,
       authFail: false,
       authSuccess: false
+    },
+    SearchStore: {
+      posts: []
     }
   };
 
@@ -84,6 +87,22 @@ router.get('/', function (req, res) {
           .catch(function (e) {
             res.status(404).send(e);
           });
+      });
+  });
+});
+
+router.get('/search/:query', function (req, res) {
+  Goblin('Composer', 'Validator', function (G) {
+    var q = req.params.query;
+
+    G.Post.search(q)
+      .then(function (searchPosts) {
+        res.resultData.SearchStore.post = searchPosts;
+
+        res.send(res.resultData);
+      })
+      .catch(function (e) {
+        res.status(404).send(e);
       });
   });
 });

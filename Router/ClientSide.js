@@ -37,6 +37,24 @@ router.get('/best', function (req, res) {
   });
 });
 
+router.post('/search/:query', function (req, res) {
+  Goblin('Composer', 'Validator', function (G) {
+    var q = req.params.query;
+
+    G.Post.search(q)
+      .then(function (searchPosts) {
+        res.send({
+          result: 'ok',
+          posts: searchPosts
+        });
+      })
+      .catch(function (e) {
+        console.log(e);
+        res.status(404).send(e);
+      });
+  });
+});
+
 router.post('/login', function (req, res) {
   var user = {
     email: req.body.email,
