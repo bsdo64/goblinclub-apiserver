@@ -369,7 +369,7 @@ router.get('/club/:clubName', function (req, res) {
       })
       .then(function (isLogin) {
         if (isLogin) {
-          var findUser = isLogin;
+          var findUser = isLogin.get({plain: true});
           G.Club.findUserCreated(findUser)
             .then(function (created) {
               result.ClubStore.userHas.createdClubList = created;
@@ -435,7 +435,7 @@ router.get('/club/:clubName/:postName', function (req, res) {
       })
       .then(function (isLogin) {
         if (isLogin) {
-          var findUser = isLogin;
+          var findUser = isLogin.get({plain: true});
           G.Club.findUserCreated(findUser)
             .then(function (created) {
               result.ClubStore.userHas.createdClubList = created;

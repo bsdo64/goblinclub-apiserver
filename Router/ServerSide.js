@@ -50,7 +50,7 @@ router.use('/', function (req, res, next) {
           result.UserStore.authFail = false;
           result.UserStore.authSuccess = true;
 
-          var findUser = isLogin;
+          var findUser = isLogin.get({plain: true});
           G.Club.findUserCreated(findUser)
             .then(function (created) {
               result.ClubStore.userHas.createdClubList = created;
