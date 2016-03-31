@@ -1,84 +1,51 @@
-/**
- * Created by dobyeongsu on 2015. 10. 28..
- */
+/* jshint indent: 2 */
 
-var Validation = require('../validation');
-
-module.exports = function (sequelize, DataTypes) {
-  var User = sequelize.define('user', {
-    email: {
-      comment: '회원의 이름 필드',
-      type: DataTypes.STRING,
-      unique: true,
+module.exports = function(sequelize, DataTypes) {
+  var User = sequelize.define('User', {
+    id: {
+      type: DataTypes.INTEGER(11),
       allowNull: false,
-      validate: Validation.User.email
+      primaryKey: true,
+      autoIncrement: true
     },
-    nick: {
-      comment: '회원의 닉 필드',
+    email: {
       type: DataTypes.STRING,
-      unique: true,
       allowNull: false,
-      validate: Validation.User.nick
+      unique: true
     },
     password: {
-      comment: '회원의 비밀번호 필드',
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    nick: {
       type: DataTypes.STRING,
       allowNull: false,
-      validate: Validation.User.password
+      unique: true
     }
   }, {
     classMethods: {
       associate: function (models) {
-        User.hasOne(models.auth);
-        User.hasOne(models.point);
+        User.hasOne(models.UserProfile);
+        User.hasOne(models.UserGrade);
+        User.hasOne(models.UserMembership);
+        User.hasOne(models.UserActivity);
+        User.hasOne(models.UserPoint);
+        User.hasOne(models.UserReputation);
 
-        User.hasMany(models.post, {
-          foreignKey: {
-            name: 'author',
-            allowNull: false
-          }
-        });
+        User.hasMany(models.Post);
+        User.hasMany(models.Club);
+        User.hasMany(models.Comment);
+        User.hasMany(models.SubComment);
+        
+        User.hasMany(models.PostLikeLog);
+        User.hasMany(models.CommentLikeLog);
+        User.hasMany(models.SubCommentLikeLog);
 
-        User.hasMany(models.club, {
-          foreignKey: {
-            name: 'creator',
-            allowNull: false
-          }
-        });
-
-        User.hasMany(models.comment, {
-          foreignKey: {
-            name: 'author',
-            allowNull: false
-          }
-        });
-
-        User.hasMany(models.vote, {
-          foreignKey: {
-            name: 'liker',
-            allowNull: false
-          }
-        });
-
-        User.belongsToMany(models.club, {
-          through: {
-            model: models.club_user,
-            unique: false
-          },
-          as: 'userCreatedClubs',
-          foreignKey: 'userId'
-        });
-
-        User.belongsToMany(models.club, {
-          through: {
-            model: models.subscribe,
-            unique: false
-          },
-          as: 'userSubscribedClubs',
-          foreignKey: 'userId'
-        });
+        User.hasMany(models.PageViewLog);
       }
-    }
+    },
+    underscored: true,
+    paranoid: true
   });
 
   return User;

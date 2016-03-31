@@ -17,8 +17,7 @@ var sequelize = new Sequelize(config.database, config.username, config.password,
     max: 10,
     min: 0,
     idle: 10000
-  },
-  logging: true
+  }
 });
 
 fs
@@ -31,7 +30,7 @@ fs
     DB[model.name] = model;
   });
 
-Object.keys(DB).forEach(function (modelName) {
+Object.keys(DB).forEach(function associatify(modelName) {
   if ('associate' in DB[modelName]) {
     DB[modelName].associate(DB);
   }

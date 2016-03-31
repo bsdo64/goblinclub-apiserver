@@ -33,25 +33,44 @@ app.use(function (req, res) {
   });
 });
 
-var Faker = require('./Faker');
+var Seed = require('./Seed');
 var model = require('./db/models/index');
 if (process.env.NODE_ENV === 'development') {
-  model.sequelize.sync({force: true})
-    .then(function () {
-      Faker.test2(app, function () {
-        app.listen(3001, function () {
-          console.log('DB inital-DEV');
+  model.User.findOne({id: 1}).then(function (user) {
+    if (user) {
+      model
+        .sequelize
+        .sync()
+        .then(function () {
+          app.listen(3001, function () {
+            console.log('DB inital-DEV : Not Seeded!');
+          });
         });
-      });
-    });
+    } else {
+      model
+        .sequelize
+        .sync({force: true})
+        .then(function () {
+          Seed.init(app, function () {
+            app.listen(3001, function () {
+              console.log('DB inital-DEV : Seeded!');
+            });
+          });
+        });
+    }
+  })
 } else if (process.env.NODE_ENV === 'production') {
   model.sequelize.sync({force: true})
     .then(function () {
-      Faker.test2(app, function () {
-        app.listen(3001, function () {
-          console.log('DB inital-PRODCTION');
-        });
+      app.listen(3001, function () {
+        console.log('DB inital-Production');
       });
+
+      // Seed.test2(app, function () {
+      //   app.listen(3001, function () {
+      //     console.log('DB inital-PRODCTION');
+      //   });
+      // });
     });
 }
 module.exports = app;

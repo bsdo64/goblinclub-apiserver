@@ -1,0 +1,15 @@
+{
+    "mysql": {
+        "database": "goblinclub",
+        "user": "goblinclub",
+        "password": "goblinclub"
+    },
+    "server": {
+        "port": 3005
+    },
+    "app": {
+        "layouts": true,
+        "themes": true,
+        "languages": true
+    }
+}

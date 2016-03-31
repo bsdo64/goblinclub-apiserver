@@ -98,11 +98,90 @@ router.post('/login', function (req, res) {
   });
 });
 
+router.post('/signin/checkEmail', function (req, res) {
+  var emailObj = {
+    email: req.body.signinEmail
+  };
+
+  Goblin('Composer', 'Validator', function (G) {
+    G.User.checkEmail(emailObj)
+     .then(function (result) {
+       var resultObj;
+
+       if (result === null) {
+         resultObj = 'ok';
+       } else {
+         throw new Error('email duplication');
+       }
+
+       res.json(resultObj);
+     })
+     .catch(function (err) {
+       res.json({
+         message: 'email duplication',
+         error: err
+       });
+     });
+  });
+});
+
+router.post('/signin/checkNick', function (req, res) {
+  var nickObj = {
+    nick: req.body.signinNick
+  };
+
+  Goblin('Composer', 'Validator', function (G) {
+    G.User.checkEmail(nickObj)
+     .then(function (result) {
+       var resultObj;
+
+       if (result === null) {
+         resultObj = 'ok';
+       } else {
+         throw new Error('nick duplication');
+       }
+
+       res.json(resultObj);
+     })
+     .catch(function (err) {
+       res.json({
+         message: 'nick duplication',
+         error: err
+       });
+     });
+  });
+});
+
+router.post('/signin/emailVerify', function (req, res) {
+  var codeObj = {
+    verifyCode: req.body.verifyCode,
+    email: req.body.email,
+  };
+
+  Goblin('Composer', 'Validator', function (G) {
+    G.User.verifyEmail(codeObj)
+     .then(function (result) {
+       res.json(result);
+     })
+     .catch(function (err) {
+       res.json({
+         message: 'Can\'t verify email',
+         error: err
+       });
+     });
+  });
+});
+
 router.post('/signin', function (req, res) {
   var newUser = {
-    email: req.body.signinEmail,
-    nick: req.body.signinNick,
-    password: req.body.signinPassword
+    email: req.body.email,
+    password: req.body.password,
+    nick: req.body.nick,
+    sex: !!req.body.sex,
+    year: req.body.year,
+    month: req.body.month,
+    day: req.body.day,
+    birth: req.body.birth
   };
 
   Goblin('Composer', 'Validator', function (G) {
@@ -116,9 +195,7 @@ router.post('/signin', function (req, res) {
           httpOnly: true
         });
 
-        res.json({
-          user: result.user
-        });
+        res.json('ok');
       })
       .catch(function (err) {
         res.json({
