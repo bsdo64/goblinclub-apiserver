@@ -28,7 +28,14 @@ router.get('/club', function (req, res) {
 
 router.get('/', function (req, res) {
 
-  res.send();
+  Goblin('Composer', function (G) {
+    G
+      .Post
+      .findMainPostAll()
+      .then(function (data) {
+        res.send(data);
+      });
+  });
 
   // Goblin('Composer', 'Validator', function (G) {
   //   var p = req.query.p;

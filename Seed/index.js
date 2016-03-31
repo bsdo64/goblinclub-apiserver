@@ -74,7 +74,7 @@ Seed.prototype.init = function (app, cb) {
 
           { name: 'sex', type: 'bool'},
 
-          // comunicate
+          // communicate
           { name: 'getComment', type: 'count' },
           { name: 'getLike', type: 'count' },
           { name: 'getViews', type: 'count' },

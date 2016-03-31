@@ -1469,9 +1469,6 @@ describe('Model Test', function () {
                   model.Prefix,
                   {
                     model: model.User,
-                    throght: {
-
-                    }
                   },
                   {
                     model: model.Comment,
