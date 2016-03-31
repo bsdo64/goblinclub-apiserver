@@ -36,29 +36,14 @@ app.use(function (req, res) {
 var Seed = require('./Seed');
 var model = require('./db/models/index');
 if (process.env.NODE_ENV === 'development') {
-  model.User.findOne({id: 1}).then(function (user) {
-    if (user) {
-      model
-        .sequelize
-        .sync()
+    model.sequelize.sync({force: true})
         .then(function () {
-          app.listen(3001, function () {
-            console.log('DB inital-DEV : Not Seeded!');
-          });
-        });
-    } else {
-      model
-        .sequelize
-        .sync({force: true})
-        .then(function () {
-          Seed.init(app, function () {
-            app.listen(3001, function () {
-              console.log('DB inital-DEV : Seeded!');
+            Seed.init(app, function () {
+                app.listen(3001, function () {
+                    console.log('DB inital-DEV : Seeded!');
+                });
             });
-          });
         });
-    }
-  })
 } else if (process.env.NODE_ENV === 'production') {
   model.sequelize.sync({force: true})
     .then(function () {
