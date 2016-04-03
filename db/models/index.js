@@ -9,7 +9,6 @@ var config = require('./../config')[env];
 var Sequelize = require('sequelize');
 var DB = {};
 
-require('sequelize-hierarchy')(Sequelize);
 var sequelize = new Sequelize(config.database, config.username, config.password, {
   host: config.host,
   dialect: config.dialect,
@@ -17,7 +16,8 @@ var sequelize = new Sequelize(config.database, config.username, config.password,
     max: 10,
     min: 0,
     idle: 10000
-  }
+  },
+  // logging: false
 });
 
 fs

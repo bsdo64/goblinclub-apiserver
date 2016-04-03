@@ -4,6 +4,7 @@
 /** @module Faker */
 
 var model = require('../db/models/index');
+var Promise = require('bluebird');
 
 /**
  * Faker Constructor
@@ -78,6 +79,11 @@ Seed.prototype.init = function (app, cb) {
           { name: 'getComment', type: 'count' },
           { name: 'getLike', type: 'count' },
           { name: 'getViews', type: 'count' },
+
+          // membership
+          { name: 'guest', type: 'bool' },
+          { name: 'signin', type: 'bool' },
+          { name: 'paied', type: 'bool' },
         ]);
     })
     .then(function() {
@@ -90,6 +96,7 @@ Seed.prototype.init = function (app, cb) {
       return model
         .Membership
         .bulkCreate([
+          { name: '손님'},
           { name: '일반 회원'},
           { name: '정기 회원'},
           { name: '스텝'},
@@ -103,7 +110,7 @@ Seed.prototype.init = function (app, cb) {
     // Membership Require
     .then(function(memberships) {
       seed.memberships = memberships;
-
+        
       return model
         .MembershipRequire
         .bulkCreate([
@@ -119,6 +126,9 @@ Seed.prototype.init = function (app, cb) {
           { membership_id: seed.memberships[3].get('id'), action_id: seed.actions[0].get('id'), value: 70 },
           { membership_id: seed.memberships[3].get('id'), action_id: seed.actions[1].get('id'), value: 70 },
           { membership_id: seed.memberships[3].get('id'), action_id: seed.actions[2].get('id'), value: 70 },
+          { membership_id: seed.memberships[4].get('id'), action_id: seed.actions[0].get('id'), value: 70 },
+          { membership_id: seed.memberships[4].get('id'), action_id: seed.actions[1].get('id'), value: 70 },
+          { membership_id: seed.memberships[4].get('id'), action_id: seed.actions[2].get('id'), value: 70 },
         ]);
     })
 
@@ -126,7 +136,7 @@ Seed.prototype.init = function (app, cb) {
     .then(function() {
       return model
         .UserMembership
-        .create({user_id: userId, membership_id: seed.memberships[3].get('id')});
+        .create({user_id: userId, membership_id: seed.memberships[4].get('id')});
     })
 
     // Grade
@@ -149,22 +159,21 @@ Seed.prototype.init = function (app, cb) {
     .then(function(grades) {
       seed.grades = grades;
 
+      var bulks = [];
+      for (var gKey in seed.grades) {
+        for (var aKey = 0; aKey < 3; aKey++) {
+          bulks.push({
+            grade_id: seed.grades[gKey].get('id'),
+            action_id: seed.actions[aKey].get('id'),
+            minValue: gKey * 10,
+            maxValue: (gKey * 10 + 1) + 10
+          });
+        }
+      }
+      console.log(bulks);
       return model
         .GradeRequire
-        .bulkCreate([
-          { grade_id: seed.grades[0].get('id'), action_id: seed.actions[0].get('id'), minValue: 0, maxValue: 10 },
-          { grade_id: seed.grades[0].get('id'), action_id: seed.actions[1].get('id'), minValue: 0, maxValue: 10 },
-          { grade_id: seed.grades[0].get('id'), action_id: seed.actions[2].get('id'), minValue: 0, maxValue: 10 },
-          { grade_id: seed.grades[1].get('id'), action_id: seed.actions[0].get('id'), minValue: 11, maxValue: 30 },
-          { grade_id: seed.grades[1].get('id'), action_id: seed.actions[1].get('id'), minValue: 11, maxValue: 30 },
-          { grade_id: seed.grades[1].get('id'), action_id: seed.actions[2].get('id'), minValue: 11, maxValue: 30 },
-          { grade_id: seed.grades[2].get('id'), action_id: seed.actions[0].get('id'), minValue: 31, maxValue: 40 },
-          { grade_id: seed.grades[2].get('id'), action_id: seed.actions[1].get('id'), minValue: 31, maxValue: 40 },
-          { grade_id: seed.grades[2].get('id'), action_id: seed.actions[2].get('id'), minValue: 31, maxValue: 40 },
-          { grade_id: seed.grades[3].get('id'), action_id: seed.actions[0].get('id'), minValue: 41, maxValue: 50 },
-          { grade_id: seed.grades[3].get('id'), action_id: seed.actions[1].get('id'), minValue: 41, maxValue: 50 },
-          { grade_id: seed.grades[3].get('id'), action_id: seed.actions[2].get('id'), minValue: 41, maxValue: 50 }
-        ]);
+        .bulkCreate(bulks);
     })
 
     // User Grade
@@ -187,26 +196,12 @@ Seed.prototype.init = function (app, cb) {
         .PointAction
         .bulkCreate([
           { action_id: seed.actions[0].get('id'), action_value: 1, point_value: 1 },
-          { action_id: seed.actions[0].get('id'), action_value: 10, point_value: 11 },
-          { action_id: seed.actions[0].get('id'), action_value: 100, point_value: 110 },
           { action_id: seed.actions[1].get('id'), action_value: 1, point_value: 1 },
-          { action_id: seed.actions[1].get('id'), action_value: 10, point_value: 11 },
-          { action_id: seed.actions[1].get('id'), action_value: 100, point_value: 110 },
           { action_id: seed.actions[2].get('id'), action_value: 1, point_value: 1 },
-          { action_id: seed.actions[2].get('id'), action_value: 10, point_value: 10 },
-          { action_id: seed.actions[2].get('id'), action_value: 100, point_value: 100 },
           { action_id: seed.actions[3].get('id'), action_value: 1, point_value: 1 },
-          { action_id: seed.actions[3].get('id'), action_value: 10, point_value: 10 },
-          { action_id: seed.actions[3].get('id'), action_value: 100, point_value: 100 },
           { action_id: seed.actions[4].get('id'), action_value: 1, point_value: 1 },
-          { action_id: seed.actions[4].get('id'), action_value: 10, point_value: 10 },
-          { action_id: seed.actions[4].get('id'), action_value: 100, point_value: 100 },
           { action_id: seed.actions[5].get('id'), action_value: 1, point_value: 1 },
-          { action_id: seed.actions[5].get('id'), action_value: 10, point_value: 10 },
-          { action_id: seed.actions[5].get('id'), action_value: 100, point_value: 100 },
           { action_id: seed.actions[6].get('id'), action_value: 1, point_value: 1 },
-          { action_id: seed.actions[6].get('id'), action_value: 10, point_value: 10 },
-          { action_id: seed.actions[6].get('id'), action_value: 100, point_value: 100 },
         ]);
     })
 
@@ -223,14 +218,8 @@ Seed.prototype.init = function (app, cb) {
         .ReputationAction
         .bulkCreate([
           { action_id: seed.actions[10].get('id'), action_value: 1, reputation_value: 1 },
-          { action_id: seed.actions[10].get('id'), action_value: 10, reputation_value: 11 },
-          { action_id: seed.actions[10].get('id'), action_value: 100, reputation_value: 110 },
           { action_id: seed.actions[11].get('id'), action_value: 1, reputation_value: 1 },
-          { action_id: seed.actions[11].get('id'), action_value: 10, reputation_value: 11 },
-          { action_id: seed.actions[11].get('id'), action_value: 100, reputation_value: 110 },
           { action_id: seed.actions[12].get('id'), action_value: 1, reputation_value: 2 },
-          { action_id: seed.actions[12].get('id'), action_value: 10, reputation_value: 20 },
-          { action_id: seed.actions[12].get('id'), action_value: 100, reputation_value: 200 },
         ]);
     })
 
@@ -294,30 +283,20 @@ Seed.prototype.init = function (app, cb) {
         .create({name: '일반게시판'});
     })
 
-
     // Club Setting
     .then(function() {
+      var bulks = [];
+      for (var cKey in seed.clubs) {
+        bulks.push({
+          using: 1,
+          rules: null,
+          club_type_id: 1,
+          club_id: seed.clubs[cKey].get('id')
+        })
+      }
       return model
         .ClubSetting
-        .bulkCreate([
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[0].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[1].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[2].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[3].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[4].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[5].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[6].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[7].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[8].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[9].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[10].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[11].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[12].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[13].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[14].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[15].get('id') },
-          { using: 1, rules: null, club_type_id: 1, club_id: seed.clubs[16].get('id') },
-        ]);
+        .bulkCreate(bulks);
     })
     .then(function() {
       return model.ClubSetting.findAll();
@@ -326,27 +305,15 @@ Seed.prototype.init = function (app, cb) {
     // Club Permission
     .then(function(clubsettings) {
       seed.clubsettings = clubsettings;
+      var bulks = [];
+      for (var cKey in seed.clubs) {
+        bulks.push({
+          club_id: seed.clubs[cKey].get('id')
+        })
+      }
       return model
         .ClubPermission
-        .bulkCreate([
-          { club_id: 1 },
-          { club_id: 2 },
-          { club_id: 3 },
-          { club_id: 4 },
-          { club_id: 5 },
-          { club_id: 6 },
-          { club_id: 7 },
-          { club_id: 8 },
-          { club_id: 9 },
-          { club_id: 10 },
-          { club_id: 11 },
-          { club_id: 12 },
-          { club_id: 13 },
-          { club_id: 14 },
-          { club_id: 15 },
-          { club_id: 16 },
-          { club_id: 17 }
-        ]);
+        .bulkCreate(bulks);
     })
     .then(function() {
       return model.ClubPermission.findAll();
@@ -373,888 +340,41 @@ Seed.prototype.init = function (app, cb) {
     // Membership Permission
     .then(function(permissions) {
       seed.permissions = permissions;
+
+      var bulks = [];
+      for (var mKey in seed.memberships) {
+        for (var pKey in seed.permissions) {
+          for (var cpKey in seed.clubpermissions) {
+            bulks.push({
+              membership_id: seed.memberships[mKey].get('id'),
+              permission_id: seed.permissions[pKey].get('id'),
+              club_permission_id: seed.clubpermissions[cpKey].get('id'),
+            });
+          }
+        }
+      }
       return model
         .MembershipPermission
-        .bulkCreate([
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[0].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[1].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[2].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[0].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[1].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[2].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[3].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[4].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { membership_id: seed.memberships[3].get('id'), permission_id: permissions[5].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-        ])
+        .bulkCreate(bulks)
     })
 
     // Grade Permission
     .then(function() {
+      var bulks = [];
+      for (var gKey in seed.grades) {
+        for (var pKey in seed.permissions) {
+          for (var cpKey in seed.clubpermissions) {
+            bulks.push({
+              grade_id: seed.grades[gKey].get('id'),
+              permission_id: seed.permissions[pKey].get('id'),
+              club_permission_id: seed.clubpermissions[cpKey].get('id'),
+            });
+          }
+        }
+      }
       return model
         .GradePermission
-        .bulkCreate([
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[0].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[1].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[2].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[0].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[1].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[2].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[3].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[4].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[0].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[1].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[2].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[3].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[4].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[5].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[6].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[7].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[8].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[9].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[10].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[11].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[12].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[13].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[14].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[15].get('id') },
-          { grade_id: seed.grades[3].get('id'), permission_id: seed.permissions[5].get('id'), club_permission_id: seed.clubpermissions[16].get('id') },
-
-        ])
+        .bulkCreate(bulks)
     })
 
     // Profile Permission
@@ -1291,8 +411,48 @@ Seed.prototype.init = function (app, cb) {
         ]);
     })
     .then(function() {
+      var modelResult = [];
+      return Promise.each([
+              {name: '우리'},
+              {name: '친구'},
+              {name: '안녕'},
+              {name: '우리들'},
+              {name: '만가워'},
+            ], function(tag, index, length) {
+              return model.Tag.findOrCreate({where : tag})
+            .spread(function (data, created) {
+              if (created) {
+                modelResult.push(data);
+              }
+            })
+        })
+        .then(function(result) {
+          console.log(result, modelResult);
+          return model.Post.create({
+            title: 'title',
+            content: 'content',
+            club_id: 1,
+            user_id: userId
+          })
+        })
+        .then(function (post) {
+          return post.setTags(modelResult);
+        })
+        .then(function (post) {
+          return model.Post.findOne({
+            include: [
+              { model: model.Tag, attributes: ['name'] },
+              { model: model.User, attributes: ['nick', 'id'] },
+            ]
+          })
+        })
+        .then(function (post) {
+          return console.log(JSON.parse(JSON.stringify(post)));
+        })
+    })
+    .then(function() {
       cb();
-    });
+    })
 };
 
 module.exports = new Seed();

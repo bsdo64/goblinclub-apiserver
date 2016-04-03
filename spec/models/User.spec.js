@@ -1,8 +1,8 @@
 /**
  * Created by dobyeongsu on 2015. 12. 19..
  */
-var model = require('../db/models/index.js');
-var Seed = require('../Seed/index');
+var model = require('../../db/models/index.js');
+var Seed = require('../../Seed/index');
 
 describe('Model Test', function () {
   beforeAll(function (done) {

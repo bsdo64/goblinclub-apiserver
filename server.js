@@ -10,10 +10,12 @@ var composeServer = require('./Router/ServerSide');
 var composeClient = require('./Router/ClientSide');
 
 var app = Express();
+
+const origin = 'http://localhost:3000';
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 app.locals.settings['x-powered-by'] = false;
-app.use(cors({origin: 'http://localhost:3000'}));
+app.use(cors({origin: origin}));
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 app.use(cookieParser());

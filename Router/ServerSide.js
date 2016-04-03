@@ -27,13 +27,13 @@ router.get('/club', function (req, res) {
 });
 
 router.get('/', function (req, res) {
-
   Goblin('Composer', function (G) {
     G
       .Post
-      .findMainPostAll()
+      .findMainPostAll({page: 1, limit: 10})
       .then(function (data) {
-        res.send(data);
+        console.log(data);
+        res.send({PostStore: data});
       });
   });
 
@@ -60,15 +60,16 @@ router.get('/club/:clubUrl', function (req, res) {
   res.send();
 });
 
+
+router.get('/club/:clubUrl/submit', function (req, res) {
+  res.send();
+});
+
 router.get('/club/:clubUrl/:postId', function (req, res) {
   res.send();
 });
 
-router.get('/submit', function (req, res) {
-  res.send();
-});
-
-router.get('/submit/:clubUrl', function (req, res) {
+router.get('/profile', function (req, res) {
   res.send();
 });
 
