@@ -33,7 +33,7 @@ router.get('/', function (req, res) {
       .findMainPostAll({page: 1, limit: 10})
       .then(function (data) {
         console.log(data);
-        res.send({PostStore: data});
+        res.send({BestSectionStore: data});
       });
   });
 
@@ -57,7 +57,18 @@ router.get('/', function (req, res) {
 });
 
 router.get('/club/:clubUrl', function (req, res) {
-  res.send();
+  Goblin('Composer', function (G) {
+    G
+      .Post
+      .findClubPostAll({page: 1, limit: 10, url: req.params.clubUrl})
+      .then(function (data) {
+        console.log(data);
+        res.send({ClubSectionStore: data});
+      })
+      .catch(function (err) {
+        res.status(404).send(err);
+      })
+  });
 });
 
 

@@ -20,24 +20,24 @@ describe('Composer User Test', function () {
 
   describe('Signin >>', function () {
     describe('CheckEmail >>', function () {
-      it('success', function(done) {
+      it('success', function (done) {
         var email = 'bsdo2@naver.com';
 
         model
           .User
-          .findOne({where: { email: email }})
+          .findOne({where: {email: email}})
           .then(function (user) {
             expect(user).toBeNull();
             done();
           })
       });
 
-      it('duplicate', function(done) {
+      it('duplicate', function (done) {
         var email = 'bsdo@naver.com';
 
         model
           .User
-          .findOne({where: { email: email }})
+          .findOne({where: {email: email}})
           .then(function (user) {
             expect(user).not.toBeNull();
             done();
@@ -46,24 +46,24 @@ describe('Composer User Test', function () {
     });
 
     describe('CheckNick >>', function () {
-      it('success', function(done) {
+      it('success', function (done) {
         var nick = '고블린클럽3';
 
         model
           .User
-          .findOne({where: { nick: nick }})
+          .findOne({where: {nick: nick}})
           .then(function (user) {
             expect(user).toBeNull();
             done();
           })
       });
 
-      it('duplicate', function(done) {
+      it('duplicate', function (done) {
         var nick = '고블린클럽';
 
         model
           .User
-          .findOne({where: { nick: nick }})
+          .findOne({where: {nick: nick}})
           .then(function (user) {
             expect(user).not.toBeNull();
             done();
@@ -80,7 +80,7 @@ describe('Composer User Test', function () {
         birth: new Date()
       };
 
-      it('success', function(done) {
+      it('success', function (done) {
         var uCreate = {
           email: u.email,
           nick: u.nick,
@@ -94,7 +94,7 @@ describe('Composer User Test', function () {
               return done.fail(created);
             }
 
-            var userId = newUser.get('id'),
+            var userId   = newUser.get('id'),
                 uProfile = {
                   birth: u.birth,
                   sex: u.sex,
@@ -146,7 +146,7 @@ describe('Composer User Test', function () {
                   })
               })
               .then(function (user) {
-                console.log(user.get({plain: true}));
+                expect(user.get('id')).toEqual(3);
                 done();
               })
           })
@@ -154,52 +154,25 @@ describe('Composer User Test', function () {
             done.fail(err);
           });
       });
-
-      it('duplicate', function(done) {
-        var nick = '고블린클럽';
-
+    });
+    
+    describe('>> Token', function () {
+      it('>> Set', function (done) {
         model
           .User
-          .findOne({where: { nick: nick }})
+          .findOne({where: {id: 3}})
           .then(function (user) {
-            expect(user).not.toBeNull();
-            done();
+            jsonwebtoken.sign(
+              {id: user.get('id'), nick: user.get('nick')},
+              'secret',
+              {expiresIn: '24h'},
+              function (token) {
+                var decoded = jsonwebtoken.decode(token);
+                expect(decoded.id).toEqual(user.get('id'));
+                done();
+              });
           })
-      });
-    });
-
-    it('>> findOne <<', function (done) {
-      model
-        .User
-        .findOne({
-          where: {id: 2},
-          include: [
-            { model: model.UserMembership, include: [ model.Membership ] },
-            { model: model.UserGrade, include: [ model.Grade ] },
-            { model: model.UserProfile },
-          ]
-        })
-        .then(function (user) {
-          expect(user).not.toBeNull();
-          done();
-        });
-    });
-
-    it('>> findOne <<', function (done) {
-      model
-        .User
-        .findOne({
-          where: {id: 2},
-          include: [
-            { model: model.UserMembership, include: [ model.Membership ] },
-            { model: model.UserGrade, include: [ model.Grade ] },
-            { model: model.UserProfile },
-          ]
-        })
-        .then(function (user) {
-          expect(user).not.toBeNull();
-          done();
-        });
+      })
     });
   });
 
@@ -207,7 +180,4 @@ describe('Composer User Test', function () {
     
   });
 
-  describe('====== Login =======', function () {
-
-  });
 });

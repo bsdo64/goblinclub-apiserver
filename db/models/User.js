@@ -42,6 +42,7 @@ module.exports = function(sequelize, DataTypes) {
         User.hasMany(models.SubCommentLikeLog);
 
         User.hasMany(models.PageViewLog);
+        User.hasMany(models.LoginLog);
       }
     },
     underscored: true,
