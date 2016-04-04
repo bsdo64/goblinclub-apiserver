@@ -34,6 +34,8 @@ module.exports = function(sequelize, DataTypes) {
     classMethods: {
       associate: function (models) {
         ClubGroup.belongsTo(models.User);
+        
+        ClubGroup.hasMany(models.Club);
       }
     },
     underscored: true

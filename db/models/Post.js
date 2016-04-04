@@ -10,11 +10,11 @@ module.exports = function(sequelize, DataTypes) {
     },
     title: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: false
     },
     content: {
-      type: DataTypes.STRING,
-      allowNull: true
+      type: DataTypes.TEXT,
+      allowNull: false
     },
     like_count: {
       type: DataTypes.INTEGER(11),

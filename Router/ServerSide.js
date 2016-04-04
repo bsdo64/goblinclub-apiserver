@@ -3,6 +3,7 @@
  */
 var express = require('express');
 var router = express.Router();
+var assign = require('deep-assign');
 
 var moment = require('moment');
 moment.locale('ko');
@@ -23,7 +24,14 @@ router.get('/signin', function (req, res) {
 });
 
 router.get('/club', function (req, res) {
-  res.send();
+  Goblin('Composer', function (G) {
+    G
+      .Club
+      .findClubList()
+      .then(function(clubLists) {
+        res.send({ClubListStore: clubLists});
+      });
+  });
 });
 
 router.get('/', function (req, res) {
@@ -32,7 +40,6 @@ router.get('/', function (req, res) {
       .Post
       .findMainPostAll({page: 1, limit: 10})
       .then(function (data) {
-        console.log(data);
         res.send({BestSectionStore: data});
       });
   });
@@ -58,26 +65,98 @@ router.get('/', function (req, res) {
 
 router.get('/club/:clubUrl', function (req, res) {
   Goblin('Composer', function (G) {
+    var result = {};
+
     G
       .Post
       .findClubPostAll({page: 1, limit: 10, url: req.params.clubUrl})
-      .then(function (data) {
-        console.log(data);
-        res.send({ClubSectionStore: data});
+      .then(function (clubPostList) {
+        assign(result, { ClubSectionStore : { list : clubPostList }});
+
+        return G
+          .Club
+          .findClubList();
+      })
+      .then(function (clubLists) {
+        assign(result, { ClubListStore : clubLists });
+
+        return G
+          .Club
+          .findOneClubByUrl(req.params.clubUrl);
+      })
+      .then(function (club) {
+        assign(result, { ClubSectionStore : { club: club }});
+
+        res.send(result);
       })
       .catch(function (err) {
+        console.log(err);
         res.status(404).send(err);
-      })
+      });
   });
 });
 
 
 router.get('/club/:clubUrl/submit', function (req, res) {
-  res.send();
+  Goblin('Composer', function (G) {
+    var result = {};
+
+    G
+      .Club
+      .findClubList()
+      .then(function(clubLists) {
+        result.ClubListStore = clubLists;
+
+        return G
+          .Club
+          .findClubPrefix(req.params.clubUrl);
+      })
+      .then(function (clubPrefix) {
+        result.SubmitStore = clubPrefix;
+
+        res.send(result);
+      });
+  });
 });
 
 router.get('/club/:clubUrl/:postId', function (req, res) {
-  res.send();
+  Goblin('Composer', function (G) {
+    var result = {};
+    
+    G
+      .Post
+      .findOnePostById(req.params.postId)
+      .then(function (post) {
+        assign(result, { PostSectionStore : post });
+        
+        return G
+          .Club
+          .findClubList();
+      })
+      .then(function(clubLists) {
+        assign(result, {ClubListStore: clubLists});
+        
+        return G
+          .Post
+          .findClubPostAll({page: 1, limit: 10, url: req.params.clubUrl});
+      })
+      .then(function (clubPostList) {
+        assign(result, { ClubSectionStore : { list : clubPostList }});
+
+        return G
+          .Club
+          .findOneClubByUrl(req.params.clubUrl);
+      })
+      .then(function (club) {
+        assign(result, { ClubSectionStore : { club: club }});
+
+        res.send(result);
+      })
+      .catch(function (err) {
+        console.log(err);
+        res.status(404).send(err);
+      });
+  });
 });
 
 router.get('/profile', function (req, res) {
