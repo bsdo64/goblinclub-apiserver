@@ -21,7 +21,9 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 app.use(function (req, res, next) {
-  console.log(req.method, req.url);
+  console.log(req.method, req.url, req.headers);
+  var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+  console.log(ip);
   next();
 });
 

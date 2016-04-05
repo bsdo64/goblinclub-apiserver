@@ -18,32 +18,15 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     classMethods: {
       associate: function (models) {
-        // Like.belongsTo(models.User);
-
-        // Like Comment
-        models.Comment.belongsToMany(models.User, {
-          through: {
-            model: CommentLike,
-            unique: false,
-            constraints: false
-          },
-          unique: false,
-          as: 'userLikeComment',
-          foreignKey: 'comment_id',
-          constraints: false
-        });
 
         models.User.belongsToMany(models.Comment, {
-          through: {
-            model: CommentLike,
-            unique: false,
-            constraints: false
-          },
-          unique: false,
-          as: 'likeComment',
-          foreignKey: 'user_id'
+          through: 'CommentLike',
+          as: 'CommentsUserLike'
         });
-        
+        models.Comment.belongsToMany(models.User, {
+          through: 'CommentLike',
+          as: 'UsersLikeComment'
+        });
         
       }
     },

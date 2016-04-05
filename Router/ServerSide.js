@@ -4,6 +4,7 @@
 var express = require('express');
 var router = express.Router();
 var assign = require('deep-assign');
+var Promise = require('bluebird');
 
 var moment = require('moment');
 moment.locale('ko');
@@ -36,11 +37,55 @@ router.get('/club', function (req, res) {
 
 router.get('/', function (req, res) {
   Goblin('Composer', function (G) {
+    var result = {};
+
+    var comments = [];
+
     G
       .Post
       .findMainPostAll({page: 1, limit: 10})
       .then(function (data) {
-        res.send({BestSectionStore: data});
+        assign(result, {BestSectionStore: {postsData: data}});
+
+        return G
+          .Post
+          .findPostIdAllUserLike({page: 1, limit: 10});
+      })
+      .then(function (data) {
+        assign(result, {BestSectionStore: {likesData: data}});
+
+        var posts = result.BestSectionStore.postsData.data;
+
+        return Promise.each(posts, function (post, index, length) {
+          return post.getComments()
+            .then(function (data) {
+              comments.push({
+                id: post.get('id'),
+                data: data
+              });
+            });
+        });
+      })
+      .then(function () {
+        assign(result, {
+          BestSectionStore: {
+            commentsData: {
+              data: comments,
+              total: comments.length,
+              page: 1,
+              limit: 10
+            }
+          }
+        });
+
+        return G
+          .User
+          .getStatus()
+      })
+      .then(function (status) {
+        
+        
+        res.send(result);
       });
   });
 
