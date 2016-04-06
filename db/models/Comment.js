@@ -12,6 +12,14 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING,
       allowNull: true
     },
+    sub_comment_count: {
+      type: DataTypes.INTEGER(11),
+      defaultValue: 0
+    },
+    comment_like_count: {
+      type: DataTypes.INTEGER(11),
+      defaultValue: 0
+    },
     
     post_id: {
       type: DataTypes.INTEGER(11),

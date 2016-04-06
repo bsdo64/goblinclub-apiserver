@@ -241,32 +241,32 @@ router.get('/club/:clubName', function (req, res) {
   });
 });
 
-router.get('/club/:clubName/:postName', function (req, res) {
-  var postName = req.params.postName;
-  var clubName = req.params.clubName;
-
-  Goblin('Composer', 'Validator', function (G) {
-    G.Post.findOneByClub(clubName, postName)
-      .then(function (post) {
-        res.resultData.PostStore.readingPost = post;
-
-        return G.Comment.findByPostId(postName);
-      })
-      .then(function (comments) {
-        res.resultData.PostStore.commentList = comments;
-
-        return G.Post.findPostByClub(clubName);
-      })
-      .then(function (posts) {
-        res.resultData.PostStore.postList = posts;
-
-        res.send(res.resultData);
-      })
-      .catch(function (e) {
-        res.status(404).send(e);
-      });
-  });
-});
+// router.get('/club/:clubName/:postName', function (req, res) {
+//   var postName = req.params.postName;
+//   var clubName = req.params.clubName;
+//
+//   Goblin('Composer', 'Validator', function (G) {
+//     G.Post.findOneByClub(clubName, postName)
+//       .then(function (post) {
+//         res.resultData.PostStore.readingPost = post;
+//
+//         return G.Comment.findByPostId(postName);
+//       })
+//       .then(function (comments) {
+//         res.resultData.PostStore.commentList = comments;
+//
+//         return G.Post.findPostByClub(clubName);
+//       })
+//       .then(function (posts) {
+//         res.resultData.PostStore.postList = posts;
+//
+//         res.send(res.resultData);
+//       })
+//       .catch(function (e) {
+//         res.status(404).send(e);
+//       });
+//   });
+// });
 
 router.get('/submit', function (req, res) {
   var token = req.headers.token;

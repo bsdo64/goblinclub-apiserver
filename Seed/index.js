@@ -455,4 +455,49 @@ Seed.prototype.init = function (app, cb) {
     })
 };
 
+
+Seed.prototype.addPosts = function (number, cb) {
+  var seed = {};
+  var userId = 1;
+
+  var tagsArray = [];
+  var postArray = [];
+  return Promise.each([
+      {name: '우리'},
+      {name: '친구'},
+      {name: '안녕'},
+      {name: '우리들'},
+      {name: '만가워'}
+    ], function (tag, index, length) {
+      return model.Tag.findOrCreate({where: tag})
+        .spread(function (data, created) {
+          if (created) {
+            tagsArray.push(data);
+          }
+        });
+    })
+    .then(function () {
+      var postInit = [];
+      for (var i = 0; i < number; i++ ) {
+        for (var j = 1; j < 18; j++) {
+          postInit.push({ title: 'The title ' + i, content: 'content' + i, club_id: j, user_id: userId});
+        }
+      }
+      return Promise.each(postInit, function(post, index, length) {
+        return model.Post.create(post)
+          .then(function (data) {
+            postArray.push(data);
+          });
+      });
+    })
+    .then(function () {
+      return postArray.map(function (post) {
+        post.setTags(tagsArray);
+      });
+    })
+    .then(function () {
+      cb();
+    });
+};
+
 module.exports = new Seed();
