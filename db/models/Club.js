@@ -35,6 +35,7 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     classMethods: {
       associate: function (models) {
+        Club.hasOne(models.Post);
         Club.hasOne(models.ClubSetting);
         Club.hasOne(models.ClubPermission, {
           foreignKey: 'club_id',

@@ -167,12 +167,19 @@ router.get('/club/:clubUrl/submit', function (req, res) {
 router.get('/club/:clubUrl/:postId', function (req, res) {
   Goblin('Composer', function (G) {
     var result = {};
-    
+
     G
-      .Post
-      .findOnePostById(req.params.postId)
+      .Club
+      .findOneClubByUrl(req.params.clubUrl)
+      .then(function (club) {
+        assign(result, { ClubSectionStore: { club: club } });
+        
+        return G
+          .Post
+          .findOneByClubUrl(club, req.params.postId);
+      })
       .then(function (post) {
-        assign(result, { PostSectionStore : post });
+        assign(result, { PostSectionStore: post });
         
         return G
           .Club
@@ -187,13 +194,6 @@ router.get('/club/:clubUrl/:postId', function (req, res) {
       })
       .then(function (clubPostList) {
         assign(result, { ClubSectionStore : { list : clubPostList }});
-
-        return G
-          .Club
-          .findOneClubByUrl(req.params.clubUrl);
-      })
-      .then(function (club) {
-        assign(result, { ClubSectionStore : { club: club }});
 
         res.send(result);
       })

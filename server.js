@@ -67,17 +67,17 @@ var model = require('./db/models/index');
 if (process.env.NODE_ENV === 'development') {
     model.sequelize.sync({force: false})
         .then(function () {
-            Seed.init(app, function () {
-              Seed.addPosts(20, function() {
-                app.listen(3001, function () {
-                  console.log('DB inital-DEV : Seeded!');
-                });
-              });
+            // Seed.init(app, function () {
+            //   Seed.addPosts(20, function() {
+            //     app.listen(3001, function () {
+            //       console.log('DB inital-DEV : Seeded!');
+            //     });
+            //   });
 
-              // app.listen(3001, function () {
-              //   console.log('DB inital-DEV : Seeded!');
-              // });
-            });
+              app.listen(3001, function () {
+                console.log('DB inital-DEV : Not Seeded!');
+              });
+            // });
         });
 } else if (process.env.NODE_ENV === 'production') {
   model.sequelize.sync({force: true})
