@@ -16,6 +16,6 @@ ApiServerError.prototype = {
       }
     });
   }
-}
+};
 
 module.exports = new ApiServerError();

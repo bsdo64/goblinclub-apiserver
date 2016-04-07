@@ -4,9 +4,41 @@
 var express = require('express');
 var router = express.Router();
 var moment = require('moment');
+var cookieParser = require('cookie-parser');
 moment.locale('ko');
 
 var Goblin = require('../lib/index');
+
+function ClientSideError() {}
+ClientSideError.prototype = {
+  DuplicateEmailError: function DuplicateEmailError() {
+    var temp = Error.apply(this, arguments);
+    temp.name = this.name = 'DuplicateEmailError';
+    this.message = temp.message;
+
+    Object.create(Error.prototype, {
+      constructor: {
+        value: DuplicateEmailError,
+        writable: true,
+        configurable: true
+      }
+    });
+  },
+  DuplicateNickError: function DuplicateNickError() {
+    var temp = Error.apply(this, arguments);
+    temp.name = this.name = 'DuplicateNickError';
+    this.message = temp.message;
+
+    Object.create(Error.prototype, {
+      constructor: {
+        value: DuplicateNickError,
+        writable: true,
+        configurable: true
+      }
+    });
+  }
+};
+var clientError = new ClientSideError();
 
 router.get('/best', function (req, res) {
   var p = req.query.p;
@@ -104,21 +136,27 @@ router.post('/signin/checkEmail', function (req, res) {
   };
 
   Goblin('Composer', 'Validator', function (G) {
-    G.User.checkEmail(emailObj)
+    G.validate
+      .check('checkDuplicateEmail', emailObj)
+      .then(function (validateEmail) {
+        return G
+          .User
+          .checkEmail(validateEmail);
+      })
      .then(function (result) {
        var resultObj;
 
        if (result === null) {
          resultObj = 'ok';
        } else {
-         throw new Error('email duplication');
+         throw new clientError.DuplicateEmailError('중복된 이메일 입니다');
        }
 
        res.json(resultObj);
      })
      .catch(function (err) {
        res.json({
-         message: 'email duplication',
+         message: '중복된 이메일 입니다',
          error: err
        });
      });
@@ -131,39 +169,46 @@ router.post('/signin/checkNick', function (req, res) {
   };
 
   Goblin('Composer', 'Validator', function (G) {
-    G.User.checkEmail(nickObj)
+    G.validate
+      .check('checkDuplicateNick', nickObj)
+      .then(function (validateNick) {
+        return G
+          .User
+          .checkNick(validateNick);
+      })
      .then(function (result) {
        var resultObj;
 
        if (result === null) {
          resultObj = 'ok';
        } else {
-         throw new Error('nick duplication');
+         throw new clientError.DuplicateEmailError('중복된 닉네임 입니다');
        }
 
        res.json(resultObj);
      })
      .catch(function (err) {
        res.json({
-         message: 'nick duplication',
+         message: '중복된 닉네임 입니다',
          error: err
        });
      });
   });
 });
 
-router.post('/signin/emailVerify', function (req, res) {
-  var codeObj = {
-    verifyCode: req.body.verifyCode,
-    email: req.body.email,
+router.post('/signin/requestEmailVerify', function (req, res) {
+  var emailObj = {
+    email: req.body.signinEmail
   };
+  var sessionId = cookieParser.signedCookie(req.cookies.sessionId, '1234567890QWERTY');
 
   Goblin('Composer', 'Validator', function (G) {
-    G.User.verifyEmail(codeObj)
+    G.User.requestEmailVerifyCode(emailObj, sessionId)
      .then(function (result) {
        res.json(result);
      })
      .catch(function (err) {
+       console.error(err);
        res.json({
          message: 'Can\'t verify email',
          error: err
@@ -172,22 +217,44 @@ router.post('/signin/emailVerify', function (req, res) {
   });
 });
 
+router.post('/signin/checkEmailVerify', function (req, res) {
+  var codeObj = {
+    verifyCode: req.body.verifyCode
+  };
+  var sessionId = cookieParser.signedCookie(req.cookies.sessionId, '1234567890QWERTY');
+
+  Goblin('Composer', 'Validator', function (G) {
+    G.User.checkVerifyCode(codeObj, sessionId)
+      .then(function (result) {
+        res.json(result);
+      })
+      .catch(function (err) {
+        res.json({
+          message: 'Not same verify code',
+          error: err
+        });
+      });
+  });
+});
+
 router.post('/signin', function (req, res) {
-  var newUser = {
-    email: req.body.email,
+  var newUserObj = {
+    email: req.body.signinEmail,
     password: req.body.password,
-    nick: req.body.nick,
+    nick: req.body.signinNick,
     sex: !!req.body.sex,
     year: req.body.year,
     month: req.body.month,
     day: req.body.day,
     birth: req.body.birth
   };
+  var sessionId = cookieParser.signedCookie(req.cookies.sessionId, '1234567890QWERTY');
 
   Goblin('Composer', 'Validator', function (G) {
-    G.validate.signinUser(newUser)
+    G.validate
+      .check('signinUser', newUserObj)
       .then(function (validatedUser) {
-        return G.User.signin(validatedUser);
+        return G.User.signin(validatedUser, sessionId);
       })
       .then(function (result) {
         res.cookie('token', result.token, {
@@ -195,7 +262,7 @@ router.post('/signin', function (req, res) {
           httpOnly: true
         });
 
-        res.json('ok');
+        res.json({result: 'ok'});
       })
       .catch(function (err) {
         res.json({
