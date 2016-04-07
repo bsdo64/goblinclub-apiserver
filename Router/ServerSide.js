@@ -80,7 +80,7 @@ router.get('/', function (req, res) {
 
         return G
           .User
-          .getStatus()
+          .getStatus();
       })
       .then(function (status) {
         

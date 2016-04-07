@@ -65,7 +65,7 @@ app.use(function errorHandler(err, req, res, next) {
 var Seed = require('./Seed');
 var model = require('./db/models/index');
 if (process.env.NODE_ENV === 'development') {
-    model.sequelize.sync({force: true})
+    model.sequelize.sync({force: false})
         .then(function () {
             Seed.init(app, function () {
               Seed.addPosts(20, function() {
