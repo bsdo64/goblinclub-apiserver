@@ -5,6 +5,7 @@ var CheckUserAuthError = require('../ApiServerError').CheckUserAuthError;
 var redisClient = require('../lib/redisClient/index');
 var cookieParser = require('cookie-parser');
 var assign = require('deep-assign');
+var Goblin = require('../lib/index');
 
 function tokenVerify(token, redisToken) {
   return token === redisToken;
@@ -30,6 +31,7 @@ module.exports = function checkUserAuth(req, res, next) {
   } else {
     redisClient.get('sess:' + sessionId, function (err, result) {
       var resultJS = JSON.parse(result);
+      var resultData = res.resultData = {};
 
       if (err) {
         next(err);
@@ -59,20 +61,33 @@ module.exports = function checkUserAuth(req, res, next) {
             nick: decoded.nick
           };
           // decoded undefined
-          model
-            .User
-            .findOne({where: userObj})
-            .then(function (user) {
-              if (!user) {
-                return next(new CheckUserAuthError('Malformed jwt payload'));
-              }
+          Goblin('Composer', function (G) {
+            model
+              .User
+              .findOne({
+                where: userObj,
+                attributes: ['id', 'nick'],
+                include: [
+                  model.UserProfile,
+                  model.UserActivity,
+                  model.UserMembership,
+                  { model: model.UserGrade, include: [ model.Grade ] },
+                  model.UserPoint,
+                  model.UserReputation
+                ]
+              })
+              .then(function (user) {
+                if (!user) {
+                  return next(new CheckUserAuthError('Malformed jwt payload'));
+                }
 
-              assign(res, { UserStore: { user: user.get({plain: true}), login: true} });
-              next(); // User Login!!
-            });
+                assign(resultData, { UserStore: { user: user.get({plain: true}), login: true} });
+                next(); // User Login!!
+              });
+          });
         });
       } else {
-        assign(res, { UserStore: { user: null, login: false} });
+        assign(resultData, { UserStore: { user: null, login: false} });
         next(); // User Not Login!!
       }
     });

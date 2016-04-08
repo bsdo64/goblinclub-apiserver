@@ -80,10 +80,12 @@ if (process.env.NODE_ENV === 'development') {
             // });
         });
 } else if (process.env.NODE_ENV === 'production') {
-  model.sequelize.sync({force: true})
+  model.sequelize.sync({force: false})
     .then(function () {
-      app.listen(3001, function () {
-        console.log('DB inital-Production');
+      Seed.init(app, function() {
+        app.listen(3001, function () {
+          console.log('DB inital-Production');
+        });
       });
 
       // Seed.test2(app, function () {

@@ -40,96 +40,6 @@ ClientSideError.prototype = {
 };
 var clientError = new ClientSideError();
 
-router.get('/best', function (req, res) {
-  var p = req.query.p;
-  var token = req.cookies.token;
-
-  var result = {
-    PostStore: {},
-    ClubStore: {}
-  };
-
-  Goblin('Composer', function (G) {
-    G.User
-      .isLogin(token)
-      .then(function (user) {
-        G.Post.findBest(p, user)
-          .then(function (posts) {
-            result.PostStore.bestList = posts;
-            return G.Club.findDefaults();
-          })
-          .then(function (clubs) {
-            result.ClubStore.defaultClubList = clubs;
-            res.json(result);
-          })
-          .catch(function (err) {
-            res.status(404).json(err);
-          });
-      });
-  });
-});
-
-router.post('/search/:query', function (req, res) {
-  Goblin('Composer', 'Validator', function (G) {
-    var q = req.params.query;
-
-    G.Post.search(q)
-      .then(function (searchPosts) {
-        res.send({
-          result: 'ok',
-          posts: searchPosts
-        });
-      })
-      .catch(function (e) {
-        console.log(e);
-        res.status(404).send(e);
-      });
-  });
-});
-
-router.post('/login', function (req, res) {
-  var user = {
-    email: req.body.email,
-    password: req.body.password
-  };
-  Goblin('Composer', 'Validator', function (G) {
-    G.validate.loginUser(user)
-      .then(function (validateUser) {
-        return G.User.login(validateUser);
-      })
-      .then(function (result) {
-        res.cookie('token', result.token, {
-          expires: new Date(Date.now() + (24 * 60 * 60 * 1000)),
-          httpOnly: true
-        });
-
-        res.json({
-          user: result.user,
-          message: 'Loggined!'
-        });
-      })
-      .catch(function (err) {
-        if (err.name === 'ComposerError') {
-          res.status(404).json(err);
-        } else if (err.isJoi) {
-          res.status(404).json({
-            type: 'Fatal Error',
-            message: '심각한 오류',
-            error: err
-          });
-        } else if (err.name === 'ValidationError') {
-          res.status(404).json(err);
-        } else {
-          res.status(404).json({
-            type: 'Fatal Error',
-            message: '심각한 오류',
-            error: err
-          });
-        }
-      });
-  });
-});
-
 router.post('/signin/checkEmail', function (req, res) {
   var emailObj = {
     email: req.body.signinEmail
@@ -272,6 +182,106 @@ router.post('/signin', function (req, res) {
       });
   });
 });
+
+router.post('/logout', function (req, res) {
+  var sessionId = cookieParser.signedCookie(req.cookies.sessionId, '1234567890QWERTY');
+  var token = req.cookies.token;
+
+  Goblin('Composer', 'Validator', function (G) {
+    G
+      .User
+      .logout(token, sessionId)
+      .then(function () {
+        res.clearCookie('token');
+        res.json({result: 'ok'});
+      })
+      .catch(function (err) {
+        res.json({
+          message: 'can\'t remove token',
+          error: err
+        });
+      });
+  });
+});
+
+router.post('/login', function (req, res) {
+  var userObj = {
+    email: req.body.loginEmail,
+    password: req.body.password
+  };
+  var sessionId = cookieParser.signedCookie(req.cookies.sessionId, '1234567890QWERTY');
+
+  Goblin('Composer', 'Validator', function (G) {
+    G
+      .User
+      .login(userObj, sessionId)
+      .then(function (token) {
+        res.cookie('token', token, {
+          expires: new Date(Date.now() + (24 * 60 * 60 * 1000)),
+          httpOnly: true
+        });
+
+        res.json({result: 'ok'});
+      })
+      .catch(function (err) {
+        console.error(err);
+        res.json({
+          message: 'can\'t login',
+          error: err
+        })
+      })
+  });
+});
+
+// --------------------------------------------------------------------------- //
+
+router.get('/best', function (req, res) {
+  var p = req.query.p;
+  var token = req.cookies.token;
+
+  var result = {
+    PostStore: {},
+    ClubStore: {}
+  };
+
+  Goblin('Composer', function (G) {
+    G.User
+      .isLogin(token)
+      .then(function (user) {
+        G.Post.findBest(p, user)
+          .then(function (posts) {
+            result.PostStore.bestList = posts;
+            return G.Club.findDefaults();
+          })
+          .then(function (clubs) {
+            result.ClubStore.defaultClubList = clubs;
+            res.json(result);
+          })
+          .catch(function (err) {
+            res.status(404).json(err);
+          });
+      });
+  });
+});
+
+router.post('/search/:query', function (req, res) {
+  Goblin('Composer', 'Validator', function (G) {
+    var q = req.params.query;
+
+    G.Post.search(q)
+      .then(function (searchPosts) {
+        res.send({
+          result: 'ok',
+          posts: searchPosts
+        });
+      })
+      .catch(function (e) {
+        console.log(e);
+        res.status(404).send(e);
+      });
+  });
+});
+
 
 router.post('/post/like/:uid', function (req, res) {
   var token = req.cookies.token;

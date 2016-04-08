@@ -26,15 +26,7 @@ Seed.prototype.init = function (app, cb) {
 
   model
     .User
-    .create({email: 'bsdo1@naver.com', nick: '고블린클럽1', password: 'goblinclub'})
-
-    // 관리자 세팅
-    .then(function(user2) {
-      seed.user2 = user2;
-      return model
-        .User
-        .create({email: 'bsdo@naver.com', nick: '고블린클럽', password: 'goblinclub'})
-    })
+    .create({email: 'bsdo@naver.com', nick: '고블린클럽', password: 'goblinclub'})
 
     // User Profile
     .then(function(user) {
@@ -411,44 +403,49 @@ Seed.prototype.init = function (app, cb) {
         ]);
     })
     .then(function() {
-      var modelResult = [];
-      return Promise.each([
-              {name: '우리'},
-              {name: '친구'},
-              {name: '안녕'},
-              {name: '우리들'},
-              {name: '만가워'},
-            ], function(tag, index, length) {
-              return model.Tag.findOrCreate({where : tag})
-            .spread(function (data, created) {
-              if (created) {
-                modelResult.push(data);
-              }
+
+      if (process.env.NODE_ENV === 'production') {
+        return true;
+      } else {
+        var modelResult = [];
+        return Promise.each([
+            {name: '우리'},
+            {name: '친구'},
+            {name: '안녕'},
+            {name: '우리들'},
+            {name: '만가워'},
+          ], function(tag, index, length) {
+            return model.Tag.findOrCreate({where : tag})
+              .spread(function (data, created) {
+                if (created) {
+                  modelResult.push(data);
+                }
+              })
+          })
+          .then(function(result) {
+            console.log(result, modelResult);
+            return model.Post.create({
+              title: 'title',
+              content: 'content',
+              club_id: 1,
+              user_id: userId
             })
-        })
-        .then(function(result) {
-          console.log(result, modelResult);
-          return model.Post.create({
-            title: 'title',
-            content: 'content',
-            club_id: 1,
-            user_id: userId
           })
-        })
-        .then(function (post) {
-          return post.setTags(modelResult);
-        })
-        .then(function (post) {
-          return model.Post.findOne({
-            include: [
-              { model: model.Tag, attributes: ['name'] },
-              { model: model.User, attributes: ['nick', 'id'] },
-            ]
+          .then(function (post) {
+            return post.setTags(modelResult);
           })
-        })
-        .then(function (post) {
-          return console.log(JSON.parse(JSON.stringify(post)));
-        })
+          .then(function (post) {
+            return model.Post.findOne({
+              include: [
+                { model: model.Tag, attributes: ['name'] },
+                { model: model.User, attributes: ['nick', 'id'] },
+              ]
+            })
+          })
+          .then(function (post) {
+            return console.log(JSON.parse(JSON.stringify(post)));
+          })
+      }
     })
     .then(function() {
       cb();

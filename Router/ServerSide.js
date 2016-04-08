@@ -12,10 +12,6 @@ moment.locale('ko');
 var Goblin = require('../lib/index');
 
 router.use('/', function (req, res, next) {
-  var token = req.headers.token;
-  var result = {
-    UserStore: {}
-  };
 
   next();
 });
@@ -26,18 +22,21 @@ router.get('/signin', function (req, res) {
 
 router.get('/club', function (req, res) {
   Goblin('Composer', function (G) {
+    var result = res.resultData;
+
     G
       .Club
       .findClubList()
       .then(function(clubLists) {
-        res.send({ClubListStore: clubLists});
+        assign(result, {ClubListStore: clubLists});
+        res.send(result);
       });
   });
 });
 
 router.get('/', function (req, res) {
   Goblin('Composer', function (G) {
-    var result = {};
+    var result = res.resultData;
 
     var comments = [];
 
@@ -88,29 +87,11 @@ router.get('/', function (req, res) {
         res.send(result);
       });
   });
-
-  // Goblin('Composer', 'Validator', function (G) {
-  //   var p = req.query.p;
-  //   var token = req.headers.token;
-  //
-  //   G.User.isLogin(token)
-  //     .then(function (user) {
-  //       G.Post.findBest(p, user)
-  //         .then(function (posts) {
-  //           res.resultData.PostStore.bestList = posts;
-  //
-  //           res.send(res.resultData);
-  //         })
-  //         .catch(function (e) {
-  //           res.status(404).send(e);
-  //         });
-  //     });
-  // });
 });
 
 router.get('/club/:clubUrl', function (req, res) {
   Goblin('Composer', function (G) {
-    var result = {};
+    var result = res.resultData;
 
     G
       .Post
@@ -144,7 +125,7 @@ router.get('/club/:clubUrl', function (req, res) {
 
 router.get('/club/:clubUrl/submit', function (req, res) {
   Goblin('Composer', function (G) {
-    var result = {};
+    var result = res.resultData;
 
     G
       .Club
@@ -166,7 +147,7 @@ router.get('/club/:clubUrl/submit', function (req, res) {
 
 router.get('/club/:clubUrl/:postId', function (req, res) {
   Goblin('Composer', function (G) {
-    var result = {};
+    var result = res.resultData;
 
     G
       .Club
@@ -205,7 +186,8 @@ router.get('/club/:clubUrl/:postId', function (req, res) {
 });
 
 router.get('/profile', function (req, res) {
-  res.send();
+  var result = res.resultData;
+  res.send(result);
 });
 
 router.get('/search/:query', function (req, res) {
