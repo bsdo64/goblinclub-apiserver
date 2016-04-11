@@ -233,6 +233,58 @@ router.post('/login', function (req, res) {
   });
 });
 
+router.get('/comment', function (req, res) {
+  var post_id = req.query.post_id;
+  var paginationObj = {
+    page: req.query.page,
+    limit: req.query.limit
+  };
+  
+  Goblin('Composer', function (G) {
+    G
+      .Post
+      .getCommentsById(post_id, paginationObj)
+      .then(function (comments) {
+        res.json(comments);
+      });
+  });
+});
+
+router.post('/post/submit', function (req, res) {
+  var club_id = req.body.club_id;
+  var postObj = req.body.post;
+  
+  Goblin('Composer', function (G) {
+    G
+      .Post
+      .createPost(club_id, postObj)
+      .then(function (post) {
+        res.json(post);
+      });
+  });
+});
+
+router.get('/posts', function (req, res) {
+  var club_id = req.query.club_id;
+  var page = req.query.page;
+  var limit = req.query.limit;
+
+  Goblin('Composer', function (G) {
+    G
+      .Post
+      .findPostAllByClubId({page: page, limit: limit, club_id: club_id})
+      .then(function (clubPostList) {
+
+        res.send(clubPostList);
+      })
+      .catch(function (err) {
+        console.log(err);
+        res.status(404).send(err);
+      });
+  });
+});
+
+
 // --------------------------------------------------------------------------- //
 
 router.get('/best', function (req, res) {

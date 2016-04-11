@@ -131,14 +131,14 @@ router.get('/club/:clubUrl/submit', function (req, res) {
       .Club
       .findClubList()
       .then(function(clubLists) {
-        result.ClubListStore = clubLists;
+        assign(result, { ClubListStore: clubLists});
 
         return G
           .Club
           .findClubPrefix(req.params.clubUrl);
       })
       .then(function (clubPrefix) {
-        result.SubmitStore = clubPrefix;
+        assign(result, { SubmitSectionStore: clubPrefix});
 
         res.send(result);
       });
@@ -148,6 +148,8 @@ router.get('/club/:clubUrl/submit', function (req, res) {
 router.get('/club/:clubUrl/:postId', function (req, res) {
   Goblin('Composer', function (G) {
     var result = res.resultData;
+
+    var reqPage = req.query.p || 1;
 
     G
       .Club
@@ -168,10 +170,10 @@ router.get('/club/:clubUrl/:postId', function (req, res) {
       })
       .then(function(clubLists) {
         assign(result, {ClubListStore: clubLists});
-        
+
         return G
           .Post
-          .findClubPostAll({page: 1, limit: 10, url: req.params.clubUrl});
+          .findClubPostAll({page: reqPage, limit: 10, url: req.params.clubUrl});
       })
       .then(function (clubPostList) {
         assign(result, { ClubSectionStore : { list : clubPostList }});

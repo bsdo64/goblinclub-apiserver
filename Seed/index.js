@@ -5,6 +5,7 @@
 
 var model = require('../db/models/index');
 var Promise = require('bluebird');
+var bcrypt = require('bcrypt');
 
 /**
  * Faker Constructor
@@ -26,7 +27,7 @@ Seed.prototype.init = function (app, cb) {
 
   model
     .User
-    .create({email: 'bsdo@naver.com', nick: '고블린클럽', password: 'goblinclub'})
+    .create({email: 'bsdo@naver.com', nick: '고블린클럽', password: bcrypt.hashSync('goblinclub', 10)})
 
     // User Profile
     .then(function(user) {
@@ -468,9 +469,7 @@ Seed.prototype.addPosts = function (number, cb) {
     ], function (tag, index, length) {
       return model.Tag.findOrCreate({where: tag})
         .spread(function (data, created) {
-          if (created) {
-            tagsArray.push(data);
-          }
+          tagsArray.push(data);
         });
     })
     .then(function () {
@@ -493,6 +492,34 @@ Seed.prototype.addPosts = function (number, cb) {
       });
     })
     .then(function () {
+      cb();
+    });
+};
+
+Seed.prototype.addComments = function (number, cb) {
+  var seed = {};
+  var userId = 1;
+
+  return model
+    .Post
+    .findAll()
+    .then(function (posts) {
+      return Promise.each(posts, function (post, index, length) {
+        var initComment = [];
+        for (var i = 0; i < number; i++) {
+          initComment.push({content: 'Hello comment' + i, post_id: post.get('id'), user_id: userId});
+        }
+
+        return post
+          .increment('comment_count', {by: number})
+          .then(function () {
+            return model
+              .Comment
+              .bulkCreate(initComment);
+          });
+      });
+    })
+    .then(function (comment) {
       cb();
     });
 };
