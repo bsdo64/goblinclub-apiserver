@@ -275,7 +275,7 @@ router.get('/posts', function (req, res) {
       .findPostAllByClubId({page: page, limit: limit, club_id: club_id})
       .then(function (clubPostList) {
 
-        res.send(clubPostList);
+        res.json(clubPostList);
       })
       .catch(function (err) {
         console.log(err);
@@ -284,6 +284,25 @@ router.get('/posts', function (req, res) {
   });
 });
 
+router.post('/post/comment', function (req, res) {
+  var post_id = req.body.post_id;
+  var content = req.body.content;
+  
+  Goblin('Composer', function (G) {
+    G
+      .Comment
+      .createComment({post_id: post_id, content: content})
+      .then(function (comment) {
+        console.log('00sdf00sdf00sdf00sdf00sdf00sdf00sdf00sdf00sdf00sdf00sdf00sdf00sdf')
+        return G
+          .Post
+          .getCommentsById(post_id, {page: 1, limit: 10});
+      })
+      .then(function (comments) {
+        res.json(comments);
+      });
+  });
+});
 
 // --------------------------------------------------------------------------- //
 
