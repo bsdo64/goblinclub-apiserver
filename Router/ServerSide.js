@@ -192,6 +192,34 @@ router.get('/profile', function (req, res) {
   res.send(result);
 });
 
+router.get('/community', function (req, res) {
+  var query = req.query;
+
+  new Promise(function (resolve, reject) {
+    if (!query.fid) {
+      throw reject();
+    }
+
+    if (query && query.fid) {
+
+      var a = {
+        skin: 1
+      }
+
+      resolve(a);
+    }
+  })
+  .then(function (result) {
+    res.send(result);
+  })
+  .catch(function () {
+    res.send();
+  })
+});
+
+// ------------------------------------------------------------------------- //
+
+
 router.get('/search/:query', function (req, res) {
   Goblin('Composer', 'Validator', function (G) {
     var q = req.params.query;

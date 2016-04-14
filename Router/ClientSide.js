@@ -293,7 +293,6 @@ router.post('/post/comment', function (req, res) {
       .Comment
       .createComment({post_id: post_id, content: content})
       .then(function (comment) {
-        console.log('00sdf00sdf00sdf00sdf00sdf00sdf00sdf00sdf00sdf00sdf00sdf00sdf00sdf')
         return G
           .Post
           .getCommentsById(post_id, {page: 1, limit: 10});
